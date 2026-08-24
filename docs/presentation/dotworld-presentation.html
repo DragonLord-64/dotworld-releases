@@ -1,0 +1,2497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dotworld — presentation</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b23;
+    --panel2: #1c2330;
+    --ink: #e6e9ef;
+    --dim: #8b94a5;
+    --amber: #f5a524;
+    --amber-soft: rgba(245,165,36,.12);
+    --teal: #3ecfb2;
+    --red: #f16a6a;
+    --green: #6fce85;
+    --blue: #7aa2f7;
+    --mono: "SF Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); overflow: hidden; }
+
+  .slide { display: none; height: 100vh; padding: 48px 64px 68px; flex-direction: column; }
+  .slide.active { display: flex; }
+
+  /* --- chrome --- */
+  .hud { position: fixed; bottom: 18px; right: 24px; font-family: var(--mono); font-size: 13px; color: var(--dim); user-select: none; z-index: 20; display: flex; align-items: center; gap: 6px; }
+  .hud button { background: var(--panel); color: var(--ink); border: 1px solid #2a3342; border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 14px; }
+  .hud button:hover { border-color: var(--amber); }
+  .brand { position: fixed; bottom: 18px; left: 24px; z-index: 20; font-family: var(--mono); font-size: 13px; color: var(--dim); user-select: none; }
+  .brand b { color: var(--amber); font-weight: 600; }
+  .brand .sep { opacity: .4; margin: 0 8px; }
+
+  /* progress rail across the top: one segment per demo */
+  .rail { position: fixed; top: 0; left: 0; right: 0; height: 3px; display: flex; gap: 2px; z-index: 20; }
+  .rail div { flex: 1; background: #232b39; transition: background .2s; }
+  .rail div.done { background: #3a4759; }
+  .rail div.here { background: var(--amber); }
+
+  h1 { font-size: 54px; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 32px; font-weight: 650; letter-spacing: -.01em; margin-bottom: 6px; }
+  .kicker { font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin-bottom: 12px; }
+  .sub { color: var(--dim); font-size: 18px; max-width: 980px; line-height: 1.5; }
+  .lede { font-size: 21px; line-height: 1.55; max-width: 940px; }
+  .dim { color: var(--dim); }
+  .punch { color: var(--amber); font-weight: 650; }
+  code, .mono { font-family: var(--mono); }
+  code { background: var(--panel2); border-radius: 5px; padding: 2px 7px; font-size: .88em; }
+
+  .body { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+
+  /* --- file panels --- */
+  .dotfile {
+    background: var(--panel); border: 1px solid #2a3342; border-radius: 12px;
+    font-family: var(--mono); font-size: 15.5px; line-height: 1.65;
+    padding: 20px 24px; white-space: pre; overflow: auto;
+  }
+  .dotfile .fname {
+    display: block; font-size: 12.5px; color: var(--dim); border-bottom: 1px solid #2a3342;
+    margin: -20px -24px 12px; padding: 9px 24px; white-space: normal;
+  }
+  .k { color: var(--blue); }
+  .v { color: #c3cad6; }
+  .cm { color: #566072; }
+  .ci-line { display: inline-block; width: 100%; border-radius: 3px; background: var(--amber-soft); box-shadow: inset 3px 0 0 var(--amber); padding-left: 9px; margin-left: -12px; }
+  .ci-line .k { color: var(--amber); }
+  .ci-tag { color: var(--amber); font-size: 13px; opacity: .85; }
+
+  .cols { display: flex; gap: 32px; align-items: stretch; }
+  .cols > * { flex: 1; min-width: 0; }
+  .cols.tight { gap: 24px; }
+
+  table.props { border-collapse: collapse; width: 100%; font-size: 16.5px; }
+  .props th { text-align: left; font-family: var(--mono); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); padding: 9px 16px; border-bottom: 1px solid #2a3342; }
+  .props td { padding: 12px 16px; border-bottom: 1px solid #222a37; vertical-align: top; line-height: 1.45; }
+  .props td:first-child { font-family: var(--mono); color: var(--teal); white-space: nowrap; }
+  .strat { font-family: var(--mono); font-size: 12.5px; background: var(--panel2); border: 1px solid #2a3342; border-radius: 20px; padding: 3px 11px; white-space: nowrap; }
+  .strat.counter { border-color: var(--amber); color: var(--amber); }
+  .strat.union { border-color: var(--teal); color: var(--teal); }
+  tr.hotrow td { background: var(--amber-soft); }
+
+  /* --- timeline --- */
+  .chart { width: 100%; display: block; }
+  .chart text { font-family: var(--sans); }
+  .chart .axlabel { font-size: 13px; fill: var(--dim); font-family: var(--mono); }
+  .chart .grid { stroke: #232b39; stroke-width: 1; }
+  .chart .thresh { stroke: var(--red); stroke-width: 1.6; stroke-dasharray: 6 5; opacity: .8; }
+  .chart .threshtxt { font-size: 13px; fill: var(--red); font-family: var(--mono); }
+  .chart .lineA { stroke: var(--teal); stroke-width: 2.6; fill: none; }
+  .chart .lineB { stroke: #5a6478; stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+  .chart .ptA { fill: var(--teal); }
+  .chart .ptA.bad { fill: var(--red); }
+  .chart .ptA.good { fill: var(--green); }
+  .chart .val { font-size: 14px; font-family: var(--mono); fill: var(--ink); }
+  .chart .val.bad { fill: var(--red); font-weight: 600; }
+  .chart .val.good { fill: var(--green); font-weight: 600; }
+  .chart .valB { font-size: 12.5px; font-family: var(--mono); fill: #6b7487; }
+  .chart .callout { font-size: 13px; fill: var(--amber); font-family: var(--mono); }
+  .chart .ytitle { font-size: 13.5px; fill: var(--dim); }
+  .chart .legend { font-size: 13px; fill: var(--dim); }
+
+  .steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.13%; margin-top: 10px; }
+  .steps.s3 { grid-template-columns: repeat(3, 1fr); }
+  .steps.s4 { grid-template-columns: repeat(4, 1fr); }
+  .steps.s5 { grid-template-columns: repeat(5, 1fr); }
+  .stepcard { background: var(--panel); border: 1px solid #2a3342; border-radius: 10px; padding: 11px 12px; }
+  .stepcard.quar { border-color: var(--red); background: rgba(241,106,106,.07); }
+  .stepcard.reg { border-color: var(--amber); background: var(--amber-soft); }
+  .stepcard.good { border-color: var(--green); background: rgba(111,206,133,.07); }
+  .when { font-family: var(--mono); font-size: 12.5px; color: var(--dim); margin-bottom: 7px; }
+  .when b { color: var(--ink); font-weight: 600; }
+  .chip { display: block; font-family: var(--mono); font-size: 13px; line-height: 1.35; background: var(--panel2); border-radius: 6px; padding: 3px 7px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip .k { color: var(--blue); }
+  .chip.alarm { outline: 1px solid var(--red); color: var(--red); }
+  .chip.alarm .k { color: var(--red); }
+  .chip.ok { outline: 1px solid var(--green); color: var(--green); }
+  .chip.ok .k { color: var(--green); }
+  .sha { font-family: var(--mono); font-size: 11.5px; color: var(--dim); margin-top: 8px; }
+  .annot { margin-top: 16px; font-size: 16px; color: var(--dim); line-height: 1.5; max-width: 1160px; }
+  .annot .mark { color: var(--teal); }
+
+  /* --- diagram --- */
+  .diagram { width: 100%; height: auto; }
+  .diagram text { font-family: var(--sans); fill: var(--ink); }
+  .diagram .boxtitle { font-size: 17px; font-weight: 600; }
+  .diagram .boxsub { font-size: 13px; fill: var(--dim); }
+  .diagram .cmd { font-family: var(--mono); font-size: 12.5px; fill: var(--teal); }
+  .diagram .flow { stroke: #55617a; stroke-width: 1.6; fill: none; marker-end: url(#arr); }
+  .legendrow { display: flex; gap: 28px; margin-top: 16px; font-size: 15px; color: var(--dim); }
+  .legendrow .sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 8px; vertical-align: -2px; }
+
+  /* --- terminal --- */
+  .term { background: var(--panel); border: 1px solid #2a3342; border-radius: 12px; font-family: var(--mono); font-size: 15px; line-height: 1.75; padding: 20px 24px; white-space: pre; overflow: auto; }
+  .term .prompt { color: var(--dim); }
+  .term .h { color: var(--amber); }
+  .term .note { color: #566072; }
+  .term .minus { color: #b06a6a; }
+  .term .plus { color: var(--green); }
+  .term .plus.bad { color: var(--red); font-weight: 600; }
+  .term .hunk { color: #4a5568; }
+  .json .key { color: var(--blue); }
+  .json .str { color: var(--teal); }
+  .json .punc { color: #566072; }
+
+  .callbox { background: var(--panel); border: 1px solid #2a3342; border-left: 3px solid var(--amber); border-radius: 8px; padding: 14px 18px; margin-top: 14px; font-size: 16.5px; line-height: 1.5; }
+  .callbox b { color: var(--amber); font-weight: 650; }
+  .bigquote { font-size: 26px; line-height: 1.5; max-width: 1000px; font-weight: 550; margin-top: 20px; }
+  .bigquote em { color: var(--amber); font-style: normal; }
+
+  /* --- agenda --- */
+  .agenda { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 30px; margin-top: 8px; }
+  .agitem { display: flex; gap: 14px; align-items: baseline; padding: 11px 14px; border: 1px solid #2a3342; border-radius: 9px; background: var(--panel); cursor: pointer; }
+  .agitem:hover { border-color: var(--amber); }
+  .agnum { font-family: var(--mono); font-size: 13px; color: var(--amber); }
+  .agttl { font-size: 17.5px; font-weight: 600; }
+  .agdesc { font-size: 13.5px; color: var(--dim); line-height: 1.35; margin-top: 3px; }
+  .agenda.one { grid-template-columns: 1fr; gap: 8px; }
+  .agcols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 30px; }
+  .agband { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin: 6px 0 8px; }
+  .agitem { padding: 9px 13px; }
+  .agttl { font-size: 16px; }
+</style>
+<style>
+  .repo-tree { font-family: var(--mono); font-size: 15px; line-height: 1.7; white-space: pre; }
+  .repo-tree .d { color: var(--blue); }
+  .repo-tree .dw { color: var(--amber); }
+  .repo-tree .c { color: #566072; }
+  .repo-badge { display:inline-block; font-family: var(--mono); font-size: 12px; border-radius: 20px; padding: 2px 10px; margin-left: 8px; }
+  .repo-badge.yes { border: 1px solid var(--green); color: var(--green); }
+  .repo-badge.no  { border: 1px solid var(--red); color: var(--red); }
+  .repo-badge.opt { border: 1px solid var(--amber); color: var(--amber); }
+</style>
+<style>
+  .oa-diagram { width: 100%; height: auto; display: block; }
+  .oa-diagram text { font-family: var(--sans); fill: var(--ink); }
+  .oa-t   { font-size: 17px; font-weight: 650; }
+  .oa-s   { font-size: 13px; fill: var(--dim); }
+  .oa-m   { font-family: var(--mono); font-size: 13px; fill: #c3cad6; }
+  .oa-lbl { font-size: 12px; font-weight: 700; letter-spacing: .1em; fill: var(--dim); }
+  .oa-box   { fill: var(--panel); stroke: #2a3342; stroke-width: 1.5; }
+  .oa-kern  { fill: rgba(62,207,178,.06); stroke: var(--teal); stroke-width: 2; }
+  .oa-plug  { fill: rgba(245,165,36,.06); stroke: var(--amber); stroke-width: 2; }
+  .oa-store { fill: rgba(122,162,247,.06); stroke: var(--blue); stroke-width: 2; }
+  .oa-waist { fill: rgba(245,165,36,.14); stroke: var(--amber); stroke-width: 2; }
+  .oa-ghost { fill: none; stroke: #3a4759; stroke-width: 1.5; stroke-dasharray: 6 5; }
+  .oa-flow  { stroke: #55617a; stroke-width: 2; fill: none; marker-end: url(#arr); }
+  .oa-flowd { stroke: #55617a; stroke-width: 1.75; fill: none; stroke-dasharray: 6 5; marker-end: url(#arr); }
+</style>
+<style>
+  .dot-band { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); margin: 0 0 4px; }
+  .dot-link { font-family: var(--mono); font-size: 15px; line-height: 1.75; white-space: pre; }
+  .dot-cmdrow { display: grid; grid-template-columns: 260px 1fr; gap: 10px 22px; align-items: baseline; margin-top: 4px; }
+  .dot-cmdrow code { background: var(--panel2); color: var(--teal); font-size: 14.5px; padding: 3px 9px; }
+  .dot-cmdrow span { font-size: 15.5px; color: var(--dim); line-height: 1.45; }
+</style>
+<style>
+  .feat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .feat { background: var(--panel); border: 1px solid #2a3342; border-radius: 10px; padding: 12px 14px; }
+  .feat h4 { font-size: 16px; font-weight: 650; margin-bottom: 5px; }
+  .feat p { font-size: 13.5px; color: var(--dim); line-height: 1.4; }
+  .feat .cmds { font-family: var(--mono); font-size: 12.5px; color: var(--teal); line-height: 1.55; margin-top: 8px; }
+  .feat.plugin { border-left: 3px solid var(--amber); }
+  .feat.plugin h4 { color: var(--amber); }
+</style>
+<style>
+  .pl-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+  .pl-facts { display: grid; grid-template-columns: 128px 1fr; gap: 9px 18px; align-items: baseline; margin-top: 4px; }
+  .pl-facts dt { font-family: var(--mono); font-size: 12.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--dim); }
+  .pl-facts dd { font-size: 16px; line-height: 1.45; }
+  .pl-facts dd code { font-size: .9em; }
+  .pl-seam { font-family: var(--mono); font-size: 13px; color: var(--teal); }
+</style>
+<style>
+  .if-face { background: var(--panel); border: 1px solid #2a3342; border-radius: 10px; padding: 16px 18px; }
+  .if-face.off { border-style: dashed; border-color: #3a4759; opacity: .62; }
+  .if-face h4 { font-size: 19px; font-weight: 650; margin-bottom: 4px; }
+  .if-face .who { font-family: var(--mono); font-size: 12.5px; color: var(--dim); margin-bottom: 10px; }
+  .if-face p { font-size: 15px; color: var(--dim); line-height: 1.45; }
+  .if-tag { display: inline-block; font-family: var(--mono); font-size: 11.5px; border-radius: 20px; padding: 2px 10px; margin-left: 8px; vertical-align: 3px; }
+  .if-tag.on { border: 1px solid var(--green); color: var(--green); }
+  .if-tag.off { border: 1px solid #55617a; color: var(--dim); }
+  .if-tag.nb { border: 1px solid #55617a; color: var(--dim); }
+</style>
+<style>
+  .arch-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; }
+  .arch-wrap { max-width: 1600px; }
+  .arch-header-note { margin-bottom: 14px; }
+  svg.archdiagram { width: 100%; height: auto; display: block; }
+  .archdiagram text { font-family: var(--sans); fill: var(--ink); }
+  .lbl    { font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: .09em; fill: var(--dim); }
+  .btitle { font-family: var(--sans); font-size: 15px; font-weight: 650; fill: var(--ink); }
+  .bsub   { font-family: var(--sans); font-size: 11.5px; fill: var(--dim); }
+  .item   { font-family: var(--mono); font-size: 12px; fill: #c3cad6; }
+  .itemd  { font-family: var(--mono); font-size: 12px; fill: var(--dim); }
+  .archchip { font-family: var(--mono); font-size: 12px; fill: var(--ink); }
+  .note   { font-family: var(--sans); font-size: 11.5px; fill: var(--dim); }
+  .edge   { font-family: var(--sans); font-size: 11.5px; fill: var(--dim); }
+  .cap    { font-family: var(--sans); font-size: 12px; font-weight: 600; fill: var(--amber); }
+  .box    { fill: var(--panel); stroke: #2a3342; stroke-width: 1.5; }
+  .box2   { fill: var(--panel2); stroke: #2a3342; stroke-width: 1.25; }
+  .kern   { fill: rgba(62,207,178,.05); stroke: var(--teal); stroke-width: 1.75; }
+  .plug   { fill: rgba(245,165,36,.05); stroke: var(--amber); stroke-width: 1.75; }
+  .store  { fill: rgba(122,162,247,.05); stroke: var(--blue); stroke-width: 1.75; }
+  .waist  { fill: rgba(245,165,36,.14); stroke: var(--amber); stroke-width: 2; }
+  .ghost  { fill: none; stroke: #3a4759; stroke-width: 1.5; stroke-dasharray: 6 5; }
+  .chipr  { fill: #232b39; stroke: #384254; stroke-width: 1; }
+  .flow   { stroke: #55617a; stroke-width: 2; fill: none; }
+  .flowd  { stroke: #55617a; stroke-width: 1.75; fill: none; stroke-dasharray: 6 5; }
+  .arch-legend { max-width: 1600px; margin-top: 16px; display: flex; flex-wrap: wrap; gap: 22px; align-items: center; font-size: 12.5px; color: var(--dim); }
+  .arch-legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid; margin-right: 7px; vertical-align: middle; }
+  .arch-rules { max-width: 1600px; margin-top: 14px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .arch-rule { background: var(--panel); border: 1px solid #2a3342; border-left: 3px solid var(--amber); border-radius: 7px; padding: 9px 12px; font-size: 12px; line-height: 1.4; }
+  .arch-rule b { color: var(--ink); font-weight: 600; }
+  .arch-rule span { color: var(--dim); }
+</style>
+</head>
+<body>
+
+<!-- the one arrowhead every diagram points with; the shared .flow rule references it -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#55617a"/>
+  </marker>
+</defs></svg>
+
+<div class="rail" id="rail"></div>
+
+<!-- ============ cover ============ -->
+<section class="slide active" data-demo="cover">
+  <div class="body">
+    <div class="kicker">per-file metadata, versioned in git</div>
+    <h1><span style="color:var(--amber)">dot</span>world</h1>
+    <p class="lede" style="margin-top:22px; max-width:860px">
+      Arbitrary, registered, per-file properties that live beside the file and version with it.
+      What it is, then seven things it is for — every number on these slides taken from a real repository.
+    </p>
+    <p class="sub" style="margin-top:30px; font-family:var(--mono); font-size:15px">
+      press <span style="color:var(--teal)">→</span> to advance ·
+      <span style="color:var(--teal)">1–9</span> to jump ·
+      <span style="color:var(--teal)">0</span> for the agenda
+    </p>
+  </div>
+</section>
+
+<!-- ============ agenda ============ -->
+<section class="slide" data-demo="cover">
+  <div class="kicker">the deck</div>
+  <h2>First what it is. Then what it is for.</h2>
+  <p class="sub">Six sections of foundation, then seven use cases — four slides each: the problem, the initial state, the commands we ran, and what changed.</p>
+  <div class="body">
+    <div class="agcols">
+      <div>
+        <div class="agband">foundations</div>
+        <div class="agenda one">
+          <div class="agitem" onclick="jumpDemo(1)"><span class="agnum">01</span><div><div class="agttl">Where it lives</div><div class="agdesc">One directory added to your repo — and what of it reaches your remote.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(2)"><span class="agnum">02</span><div><div class="agttl">Architecture</div><div class="agdesc">Kernel, plugins, satellites, and the one place authentication happens.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(3)"><span class="agnum">03</span><div><div class="agttl">The dot</div><div class="agdesc">The metadata file, what a property is, the commands that edit one, and how it stays attached to its file.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(4)"><span class="agnum">04</span><div><div class="agttl">What the kernel gives you</div><div class="agdesc">Search, graph, workspaces, sync — everything that holds no model.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(5)"><span class="agnum">05</span><div><div class="agttl">Plugins</div><div class="agdesc">The four that ship, how one hooks up, and what writing your own costs.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(6)"><span class="agnum">06</span><div><div class="agttl">Faces, waist, satellites</div><div class="agdesc">CLI, MCP and HTTP from one registry; auth today and auth later.</div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="agband">use cases</div>
+        <div class="agenda one">
+          <div class="agitem" onclick="jumpDemo(7)"><span class="agnum">1</span><div><div class="agttl">Flaky Test Triage</div><div class="agdesc">CI writes flake data onto test files. Quarantine and a bisectable history fall out.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(8)"><span class="agnum">2</span><div><div class="agttl">Review Debt</div><div class="agdesc">The property didn't exist. Someone registers it and finds the riskiest file in the repo.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(9)"><span class="agnum">3</span><div><div class="agttl">Context Budgeting</div><div class="agdesc">Summaries plus token counts turn expensive retrieval into a cheap two-tier lookup.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(10)"><span class="agnum">4</span><div><div class="agttl">Document Obsolescence</div><div class="agdesc">A source hash drifts and the doc describing it becomes suspect — with nobody editing it.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(11)"><span class="agnum">5</span><div><div class="agttl">Selective Regeneration</div><div class="agdesc">Provenance means a model upgrade re-runs only what actually needs it.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(12)"><span class="agnum">6</span><div><div class="agttl">Cross-Repo Impact</div><div class="agdesc">One query answers "who breaks?" across separate repos, with no monorepo.</div></div></div>
+          <div class="agitem" onclick="jumpDemo(13)"><span class="agnum">7</span><div><div class="agttl">Onboarding</div><div class="agdesc">A newcomer's agent answers day-one questions from metadata alone.</div></div></div>
+        </div>
+        <div class="agitem" style="margin-top:12px" onclick="jumpDemo(14)"><span class="agnum">A</span><div><div class="agttl">Appendix — the full architecture diagram</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="repository">
+  <div class="body">
+    <div class="kicker">dotworld · 01</div>
+    <h1>Where it lives</h1>
+    <p class="lede" style="margin-top:22px; max-width:900px">
+      dotworld does not host your repository. It adds one directory to it and leaves every
+      other byte alone.
+    </p>
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      shown: <span style="color:var(--teal)">emberfall</span> — a C++ game repo, 165 tracked files
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="repository">
+  <div class="kicker">one directory, added to your repo</div>
+  <h2>The structure</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="flex:1.15">
+        <span class="fname">emberfall/ — the working tree</span><span class="d">assets/  config/  docs/  src/  tests/  tools/</span>
+CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files. untouched, byte for byte.</span>
+
+<span class="dw">.dotworld/</span>
+<span class="dw">├── dots/</span>                     <span class="c">← one .dot.md per file — DURABLE</span>
+<span class="dw">│   ├── src/gameplay/combat/CombatSystem.cpp.dot.md</span>
+<span class="dw">│   ├── docs/gdd/combat.md.dot.md</span>
+<span class="dw">│   └── …                     165 dots, 165 files</span>
+<span class="dw">├── properties.json</span>          <span class="c">← this repo's vocabulary — DURABLE</span>
+<span class="dw">├── dotworld.config.json</span>      <span class="c">← which plugins are attached — DURABLE</span>
+<span class="dw">└── derived/</span>                  <span class="c">← index, embeddings, graph — DISPOSABLE</span>
+<span class="dw">    ├── embeddings/  graph/  hashes/  orphans/  comms/</span>
+<span class="dw">    └── .gitignore   </span><span class="c">contains a single line: *</span>
+      </div>
+      <div style="flex:.85">
+        <p class="lede" style="font-size:19px">No database. No server. No sidecar format.</p>
+        <p class="sub" style="margin-top:14px">
+          A source file keeps its raw bytes — no frontmatter injected, no marker comment.
+          Someone who has never heard of dotworld can read this repo and never notice it.
+        </p>
+        <div class="callbox" style="margin-top:22px">
+          <b>Delete <code>.dotworld/derived/</code> at any time.</b> It is recomputed from the files
+          beside it on the next index. Nothing in it is a cache and nothing in it is truth.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="repository">
+  <div class="kicker">what reaches your remote</div>
+  <h2>Committed, or not — you choose, and the default is "not"</h2>
+  <div class="body">
+    <table class="props">
+      <tr><th style="width:34%">path</th><th style="width:18%">in git?</th><th>why</th></tr>
+      <tr>
+        <td>your source files</td>
+        <td><span class="repo-badge yes">tracked</span></td>
+        <td>Nothing changed. dotworld never writes to them.</td>
+      </tr>
+      <tr class="hotrow">
+        <td>.dotworld/dots/</td>
+        <td><span class="repo-badge opt">tracked, optional push</span></td>
+        <td>Durable metadata. Versions with the file, merges with the file, reviews with the file — that is the whole point. Whether it <i>leaves your machine</i> is a separate decision.</td>
+      </tr>
+      <tr>
+        <td>.dotworld/properties.json<br>.dotworld/dotworld.config.json</td>
+        <td><span class="repo-badge opt">tracked, optional push</span></td>
+        <td>The repo's property vocabulary, and the plugin composition. Same treatment as the dots — and they live <i>inside</i> <code>.dotworld/</code> precisely because that is the directory the pre-push filter strips.</td>
+      </tr>
+      <tr>
+        <td>.dotworld/derived/</td>
+        <td><span class="repo-badge no">never</span></td>
+        <td>Self-ignoring — it ships its own <code>.gitignore</code> containing <code>*</code>.</td>
+      </tr>
+    </table>
+    <div class="callbox" style="margin-top:18px">
+      <b>A repo dotworld has just met is local by default.</b> The first <code>source_register</code>
+      installs a pre-push hook, and a plain <code>git push</code> then strips <code>.dotworld/**</code>
+      before it reaches the remote. Your metadata is committed and versioned locally; your teammates
+      see nothing until you opt in with <code>neverPushDotworld=false</code>.
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="overview-architecture">
+  <div class="body">
+    <div class="kicker">dotworld · 02</div>
+    <h1>Architecture, briefly</h1>
+    <p class="lede" style="margin-top:22px; max-width:900px">
+      Three layers, one command set, one place authentication happens. Everything after this slide
+      is a detail of one of these boxes.
+    </p>
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      the full reasoning: <code>docs/architecture.md</code> · the full diagram closes this deck
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="overview-architecture">
+  <div class="kicker">the shape of it</div>
+  <h2>Kernel, plugins, satellites — and files underneath all three</h2>
+  <div class="body">
+<svg class="oa-diagram" viewBox="0 0 1420 620" role="img" aria-label="dotworld architecture, simplified">
+
+  <text class="oa-lbl" x="40" y="24">CALLERS</text>
+  <rect class="oa-box" x="40"  y="34" width="200" height="52" rx="8"/>
+  <text class="oa-t" x="140" y="58" text-anchor="middle">agent</text>
+  <text class="oa-s" x="140" y="76" text-anchor="middle">MCP client</text>
+  <rect class="oa-box" x="260" y="34" width="200" height="52" rx="8"/>
+  <text class="oa-t" x="360" y="58" text-anchor="middle">human</text>
+  <text class="oa-s" x="360" y="76" text-anchor="middle">a terminal</text>
+  <rect class="oa-box" x="480" y="34" width="200" height="52" rx="8"/>
+  <text class="oa-t" x="580" y="58" text-anchor="middle">service</text>
+  <text class="oa-s" x="580" y="76" text-anchor="middle">HTTP client</text>
+
+  <rect class="oa-ghost" x="1090" y="34" width="290" height="52" rx="8"/>
+  <text class="oa-t" x="1235" y="57" text-anchor="middle" fill="#8b94a5">satellite</text>
+  <text class="oa-s" x="1235" y="75" text-anchor="middle">remote · API-only · not built</text>
+
+  <line class="oa-flow" x1="140" y1="86" x2="140" y2="114"/>
+  <line class="oa-flow" x1="360" y1="86" x2="360" y2="114"/>
+  <line class="oa-flow" x1="580" y1="86" x2="580" y2="114"/>
+
+  <text class="oa-lbl" x="40" y="110">FACES — the same commands, generated from one registry</text>
+  <rect class="oa-box" x="40"  y="118" width="200" height="46" rx="8"/>
+  <text class="oa-t" x="140" y="147" text-anchor="middle">MCP</text>
+  <rect class="oa-box" x="260" y="118" width="200" height="46" rx="8"/>
+  <text class="oa-t" x="360" y="147" text-anchor="middle">CLI</text>
+  <rect class="oa-box" x="480" y="118" width="200" height="46" rx="8"/>
+  <text class="oa-t" x="580" y="147" text-anchor="middle">HTTP</text>
+
+  <line class="oa-flow" x1="140" y1="164" x2="140" y2="190"/>
+  <line class="oa-flow" x1="360" y1="164" x2="360" y2="190"/>
+  <line class="oa-flow" x1="580" y1="164" x2="580" y2="190"/>
+  <path class="oa-flowd" d="M1235,86 V219 H1052"/>
+
+  <rect class="oa-waist" x="40" y="194" width="1000" height="50" rx="9"/>
+  <text class="oa-t" x="60" y="217" fill="#f5a524">AUTH WAIST</text>
+  <text class="oa-s" x="60" y="235">every command carries an identity — the one place a remote caller is checked</text>
+  <text class="oa-m" x="700" y="225">default mode: none</text>
+
+  <line class="oa-flow" x1="540" y1="244" x2="540" y2="270"/>
+
+  <rect class="oa-kern" x="40" y="274" width="1000" height="150" rx="10"/>
+  <text class="oa-lbl" x="60" y="298" fill="#3ecfb2">KERNEL — always on · deterministic · no LLM · no credentials · no database · no caches</text>
+  <text class="oa-m" x="60"  y="330">dots + properties</text>
+  <text class="oa-s" x="60"  y="350">read, write, register, merge</text>
+  <text class="oa-m" x="320" y="330">index + search</text>
+  <text class="oa-s" x="320" y="350">semantic · grep · properties</text>
+  <text class="oa-m" x="580" y="330">graph</text>
+  <text class="oa-s" x="580" y="350">connectors · impact · provenance</text>
+  <text class="oa-m" x="840" y="330">git</text>
+  <text class="oa-s" x="840" y="350">workspaces · merge · hooks</text>
+  <text class="oa-s" x="60" y="392">The kernel is the auth waist. It holds no model and no secret, so there is nothing in it to leak.</text>
+  <text class="oa-s" x="60" y="410">If every plugin is detached it still runs — you lose capability, never correctness.</text>
+
+  <rect class="oa-plug" x="1090" y="274" width="290" height="150" rx="10"/>
+  <text class="oa-lbl" x="1110" y="298" fill="#f5a524">PLUGINS — local · detachable</text>
+  <text class="oa-s"   x="1110" y="316">may hold a model and credentials</text>
+  <text class="oa-m"   x="1110" y="346">obsolescence · summarizer</text>
+  <text class="oa-m"   x="1110" y="366">comms · context-loader</text>
+  <text class="oa-s"   x="1110" y="398">local, so they do not cross</text>
+  <text class="oa-s"   x="1110" y="416">the waist. That is the definition.</text>
+  <path class="oa-flowd" d="M1086,349 H1048"/>
+
+  <line class="oa-flow" x1="300" y1="424" x2="300" y2="452"/>
+  <line class="oa-flow" x1="780" y1="424" x2="780" y2="452"/>
+  <line class="oa-flow" x1="1235" y1="424" x2="1235" y2="452"/>
+
+  <rect class="oa-store" x="40" y="456" width="620" height="130" rx="10"/>
+  <text class="oa-lbl" x="60" y="480" fill="#7aa2f7">THE WORKING TREE — durable, in git, the only truth</text>
+  <text class="oa-m" x="60" y="510">the source file</text>
+  <text class="oa-s" x="230" y="510">raw bytes, never touched</text>
+  <text class="oa-m" x="60" y="536">.dotworld/dots/&lt;path&gt;.dot.md</text>
+  <text class="oa-s" x="330" y="536">what dotworld knows about it</text>
+  <text class="oa-m" x="60" y="562">.dotworld/properties.json</text>
+  <text class="oa-s" x="330" y="562">what may be said, and how it merges</text>
+
+  <rect class="oa-store" x="680" y="456" width="330" height="130" rx="10"/>
+  <text class="oa-lbl" x="700" y="480" fill="#7aa2f7">.dotworld/derived/</text>
+  <text class="oa-s" x="700" y="500">disposable — rm -rf it freely</text>
+  <text class="oa-m" x="700" y="530">embeddings · graph · hashes</text>
+  <text class="oa-m" x="700" y="552">orphans · comms</text>
+  <text class="oa-s" x="700" y="574">every byte recomputed from the files beside it</text>
+
+  <rect class="oa-store" x="1090" y="456" width="290" height="130" rx="10"/>
+  <text class="oa-lbl" x="1110" y="480" fill="#7aa2f7">GIT</text>
+  <text class="oa-s" x="1110" y="500">the sync substrate</text>
+  <text class="oa-m" x="1110" y="528">merge driver · pre-push hook</text>
+  <text class="oa-m" x="1110" y="550">linked worktrees = workspaces</text>
+  <text class="oa-s" x="1110" y="574">conflicts are git's, not dotworld's</text>
+</svg>
+  </div>
+</section>
+
+<section class="slide" data-demo="dots">
+  <div class="body">
+    <div class="kicker">dotworld · 03</div>
+    <h1>The dot</h1>
+    <p class="lede" style="margin-top:22px; max-width:940px">
+      A <b>file</b> is the content — whatever you wrote, byte for byte.
+      Its <b>dot</b> is what dotworld knows about it. Two files, both durable, both in git.
+    </p>
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      the file: <span style="color:var(--teal)">src/gameplay/combat/CombatSystem.cpp</span>
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="dots">
+  <div class="kicker">the metadata file itself</div>
+  <h2>A dot is markdown with frontmatter — nothing more</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="flex:1.3; font-size:14px; line-height:1.6">
+        <span class="fname">.dotworld/dots/src/gameplay/combat/CombatSystem.cpp.dot.md</span>---
+<span class="k">id</span>: <span class="v">src/gameplay/combat/CombatSystem.cpp</span>
+<span class="k">title</span>: <span class="v">CombatSystem</span>
+<span class="k">tags</span>: <span class="v">[]</span>
+<span class="k">source_path</span>: <span class="v">$DOTWORLD_ROOT/src/gameplay/combat/CombatSystem.cpp</span>
+<span class="k">kind</span>: <span class="v">code</span>
+<span class="k">summary</span>: <span class="v">'Implementation of CombatSystem. tryMeleeAttack() gates on a</span>
+  <span class="v">stamina check but does not yet consume stamina… resolveDamage()</span>
+  <span class="v">applies a 1.1x multiplier for Fire…'</span>
+<span class="k">summary_hash</span>: <span class="v">46fd70cd5dd2f056ccf9334b9a1db518b261cd8c</span>
+<span class="ci-line"><span class="k">reviewStatus</span>: <span class="v">changes-requested</span></span>
+<span class="ci-line"><span class="k">riskLevel</span>: <span class="v">high</span></span>
+<span class="ci-line"><span class="k">reviewedBy</span>:</span>
+<span class="ci-line">  - <span class="v">combat-reviewer</span></span>
+<span class="ci-line"><span class="k">lastHumanReview</span>: <span class="v">'2026-06-01'</span></span>
+---
+
+<span class="v">combat-reviewer: Confirmed the honest gap flagged in</span>
+<span class="v">DamageTypes.h — resolveDamage() has a TODO for Corrosion/</span>
+<span class="v">Static that falls through to raw damage.amount with no</span>
+<span class="v">status-effect tick… Leaving reviewStatus=changes-requested</span>
+<span class="v">to reflect real unfinished work, not a doc nit.</span>
+      </div>
+      <div style="flex:.7">
+        <p class="dot-band">reserved identity</p>
+        <p class="sub" style="margin-bottom:18px"><code>id</code>, <code>source_id</code>,
+          <code>source_path</code>, <code>title</code>, <code>tags</code> — these are not properties.
+          They cannot be set through the property commands, and they never enter the property bag.</p>
+        <p class="dot-band">built-in properties</p>
+        <p class="sub" style="margin-bottom:18px"><code>kind</code>, <code>summary</code>,
+          <code>summary_hash</code>, <code>obsolete</code>, <code>render-hint</code>,
+          <code>agent_instructions</code> — what the kernel and the shipped plugins write. Available
+          in a fresh repo with nothing declared.</p>
+        <p class="dot-band" style="color:var(--amber)">this repo's own properties</p>
+        <p class="sub" style="margin-bottom:18px">Everything highlighted. Arbitrary keys this
+          repository declared for itself. dotworld ships no opinion about what they mean.</p>
+        <p class="dot-band">the body</p>
+        <p class="sub">Free prose under the frontmatter, authored by a human or an agent. It merges
+          line-by-line, so two reviewers on two branches both keep their note.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="dots">
+  <div class="kicker">what a property is</div>
+  <h2>A key is declared before it can be used — and the declaration says how it merges</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div class="dotfile json" style="font-size:14px"><span class="fname">.dotworld/properties.json &nbsp;·&nbsp; the repo's vocabulary — durable, in git</span><span class="punc">{</span>
+  <span class="key">"reviewStatus"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Review workflow state for this file:</span>
+      <span class="str">needs-review | in-review | approved | changes-requested.</span>
+      <span class="str">Set during triage; the review-gate process reads it to</span>
+      <span class="str">find what still needs attention."</span>
+  <span class="punc">},</span>
+  <span class="key">"reviewedBy"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"union"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Set of reviewer ids who have signed off.</span>
+      <span class="str">Union-merged so parallel reviewers on separate workspaces</span>
+      <span class="str">each add their own id without conflicting."</span>
+  <span class="punc">}</span>
+<span class="punc">}</span></div>
+      <div>
+        <table class="props" style="font-size:15.5px">
+          <tr><th style="width:38%">merge strategy</th><th>settles a divergence by</th></tr>
+          <tr><td><span class="strat">last-writer</span></td><td>taking the newer value. For a state that has exactly one correct answer.</td></tr>
+          <tr><td><span class="strat union">union</span></td><td>keeping both sides' members. For a set — reviewers, owners, dependencies.</td></tr>
+          <tr><td><span class="strat union">line-union</span></td><td>keeping both sides' lines. For accumulating free text.</td></tr>
+          <tr><td><span class="strat counter">counter</span></td><td>summing the deltas. For something CI increments from two machines.</td></tr>
+        </table>
+        <div class="callbox" style="margin-top:16px">
+          <b>The declaration is why a merge is quiet.</b> Two reviewers, two branches, both adding
+          themselves to <code>reviewedBy</code> — git sees a conflict, dotworld already knows the
+          answer is the union and never asks you.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="dots">
+  <div class="kicker">the commands that touch a property</div>
+  <h2>Declare it, set it, find it</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="term" style="flex:1.05; font-size:13.5px; line-height:1.7"><span class="prompt">$</span> dot property_register <span class="h">name=lastHumanReview</span> \
+    merge=<span class="h">last-writer</span> \
+    description='ISO date a human last meaningfully
+    reviewed this file end-to-end — read it, judged it
+    correct, not just skimmed a diff.'
+
+<span class="prompt">$</span> dot property_set file=src/core/EntityManager.cpp \
+    key=<span class="h">lastHumanReview</span> value='"2026-05-14"' --user debt-builder
+
+<span class="note">{</span>
+<span class="note">  "ok": false,</span>
+<span class="note">  "error": "</span><span class="minus">`lastHumanReview` is not registered in this</span>
+<span class="minus">    working tree (source 'emberfall'), and is on no dot there</span>
+<span class="minus">    either.</span> <span class="plus">Otherwise register it here first —</span>
+    <span class="plus">`property_register name=lastHumanReview …`</span>",
+<span class="note">  "code": "</span><span class="minus">BAD_PARAMS</span><span class="note">"</span>
+<span class="note">}</span>            <span class="note">← the refusal names the fix</span></div>
+      <div style="flex:.95">
+        <div class="dot-cmdrow">
+          <code>property_register</code><span>Declare a key in this repo's vocabulary, with its merge strategy and what it is for.</span>
+          <code>property_set</code><span>Write one key on one file's dot. The source file is never touched.</span>
+          <code>property_get</code><span>Read named keys off named files.</span>
+          <code>property_unset</code><span>Remove a key from one dot. An explicit choice, so it works even on an unregistered key.</span>
+          <code>property_unregister</code><span>Withdraw a declaration. Values already written stay on their dots.</span>
+          <code>property_list</code><span>This repo's whole vocabulary — what is declared, and what is actually in use.</span>
+          <code>search_properties</code><span>The reason any of this exists: <i>which files have <code>riskLevel=high</code>?</i></span>
+        </div>
+        <div class="callbox" style="margin-top:18px">
+          <b>An unregistered key is refused at write time.</b> Otherwise you get
+          <code>lastHumanReview</code>, <code>LastHumanReview</code> and
+          <code>last_human_review</code> in one repo by Q3, and every reader has to guess which
+          spelling is canonical.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="dots">
+  <div class="kicker">how the two files find each other</div>
+  <h2>The path is the identity</h2>
+  <div class="body">
+    <div class="cols">
+      <div>
+        <div class="dotfile dot-link" style="font-size:14.5px"><span class="fname">the mapping is mechanical — mirror the path, append .dot.md</span><span class="v">src/gameplay/combat/CombatSystem.cpp</span>
+   <span class="cm">│</span>
+   <span class="cm">└─▶</span> <span class="dw" style="color:var(--amber)">.dotworld/dots/</span><span class="v">src/gameplay/combat/CombatSystem.cpp</span><span style="color:var(--amber)">.dot.md</span>
+
+<span class="cm">and the dot says so about itself:</span>
+
+  <span class="k">id</span>:          <span class="v">src/gameplay/combat/CombatSystem.cpp</span>
+  <span class="k">source_path</span>: <span class="v">$DOTWORLD_ROOT/src/…/CombatSystem.cpp</span>
+                <span class="cm">↑ relative to the source root, so a clone</span>
+                <span class="cm">  at any path resolves it identically</span>
+
+<span class="cm">emberfall @ master:</span>  <span class="v">165 tracked files · 165 dots</span></div>
+        <p class="annot" style="margin-top:16px">
+          No id column, no join table, no lookup service. If you can name the file you can name
+          its dot, and vice versa — which is also why a dot is never addressed by its own path.
+        </p>
+      </div>
+      <div>
+        <p class="lede" style="font-size:20px; margin-bottom:16px">So what happens when the file moves?</p>
+        <p class="sub" style="margin-bottom:14px">
+          Renaming a file by hand would strand its dot at the old path. dotworld asks git — the
+          same rename detection <code>git log --follow</code> uses — and moves the dot to match.
+          Your metadata survives a refactor you did with <code>mv</code>.
+        </p>
+        <p class="sub" style="margin-bottom:14px">
+          When git genuinely cannot tell (the file was rewritten as it moved), the dot is reported
+          <b>stranded</b> rather than silently dropped, and
+          <code>dot_attach</code> is the manual half — you name the new path, the dot follows.
+        </p>
+        <div class="callbox">
+          <b>The failure mode this rules out:</b> a year of accumulated review state, ownership and
+          provenance quietly detaching from a file because someone reorganised a directory.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="features">
+  <div class="kicker">dotworld · 04</div>
+  <h2>What the kernel gives you</h2>
+  <p class="sub">Forty-odd commands, one set, generated into all three faces. These are the groups.</p>
+  <div class="body">
+    <div class="feat-grid">
+      <div class="feat">
+        <h4>Dots &amp; properties</h4>
+        <p>Arbitrary declared metadata per file, versioned beside it.</p>
+        <div class="cmds">dot_get · dot_set<br>dot_list · dot_attach<br>property_register<br>property_set · property_get<br>property_unset · property_list</div>
+      </div>
+      <div class="feat">
+        <h4>Semantic search</h4>
+        <p>A task in English becomes a ranked list of candidate files. Local embeddings, no API call.</p>
+        <div class="cmds">search_semantic<br>embedding_info<br><span class="dim">fastembed ·<br>all-MiniLM-L6-v2</span></div>
+      </div>
+      <div class="feat">
+        <h4>Exact &amp; metadata search</h4>
+        <p>Grep when you know the identifier. Property search when you know the question.</p>
+        <div class="cmds">search_grep<br>search_properties<br>search_triage</div>
+      </div>
+      <div class="feat">
+        <h4>The graph</h4>
+        <p>Authored connectors between files, plus impact and truth-history over them.</p>
+        <div class="cmds">graph_connect<br>graph_disconnect<br>graph_get<br>graph_affected<br>graph_provenance</div>
+      </div>
+      <div class="feat">
+        <h4>Files</h4>
+        <p>Create a file and mint its dot in one act — so a new file is never invisible.</p>
+        <div class="cmds">file_create · file_delete<br>file_read · file_tree<br>file_stage · index_create</div>
+      </div>
+      <div class="feat">
+        <h4>Workspaces</h4>
+        <p>An isolated checkout on your own branch. It <i>is</i> a git linked worktree.</p>
+        <div class="cmds">workspace_open<br>workspace_list<br>workspace_submit<br>workspace_close</div>
+      </div>
+      <div class="feat">
+        <h4>Sync &amp; repair</h4>
+        <p>Rebuild the index, re-merge dots per property, and ask whether this install is half-working.</p>
+        <div class="cmds">sync_source<br>sync_merge<br>sync_doctor<br>git · version</div>
+      </div>
+      <div class="feat">
+        <h4>Sources</h4>
+        <p>One source = one repo. Registering is what points the kernel at a directory.</p>
+        <div class="cmds">source_register<br>source_list<br>source_update<br>source_unregister</div>
+      </div>
+    </div>
+    <div class="callbox" style="margin-top:16px">
+      <b>Nothing above holds a model or a credential.</b> Semantic search runs local weights on your
+      machine; everything else is deterministic file and git work. The things that <i>do</i> want an
+      LLM are the next section — and they are all detachable.
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="features">
+  <div class="kicker">the one worth a slide of its own</div>
+  <h2>A workspace is a git worktree, so parallel agents stop colliding</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="term" style="flex:1.1; font-size:14px"><span class="prompt">$</span> dot workspace_list sourceId=dotworld
+
+<span class="note">{ "name": "</span><span class="h">dotworld</span><span class="note">",  "kind": "</span>canonical<span class="note">",</span>
+<span class="note">  "path": "/home/dragonlord/dotworld",</span>
+<span class="note">  "dirty": 11, "unlanded": 0 }</span>          <span class="note">← the shared checkout</span>
+
+<span class="note">{ "name": "</span><span class="h">config-401</span><span class="note">",  "kind": "</span>managed<span class="note">",</span>
+<span class="note">  "branch": "users/config-401",</span>
+<span class="note">  "path": "~/.dotworld/worktrees/dotworld/config-401",</span>
+<span class="note">  "dirty": 21, "unlanded": 0 }</span>
+
+<span class="note">{ "name": "</span><span class="h">issue-399</span><span class="note">",  "kind": "</span>managed<span class="note">",</span>
+<span class="note">  "branch": "users/issue-399",</span>
+<span class="note">  "dirty": 0, "</span><span class="plus">unlanded": 1</span><span class="note"> }</span>            <span class="note">← done, not merged yet</span>
+
+<span class="note">{ "name": "</span><span class="h">issue-400</span><span class="note">",  "kind": "</span>managed<span class="note">",</span>
+<span class="note">  "branch": "users/issue-400",</span>
+<span class="note">  "dirty": 4, "unlanded": 0 }</span></div>
+      <div style="flex:.9">
+        <p class="lede" style="font-size:20px">Four agents, four checkouts, four branches, one repository.</p>
+        <p class="sub" style="margin-top:14px">
+          <code>workspace_open</code> creates the caller's own worktree on their own branch, outside
+          the source root. <code>workspace_submit</code> merges it back into the canonical checkout
+          wherever that lives.
+        </p>
+        <p class="sub" style="margin-top:14px">
+          Because a workspace is a real worktree, none of this is a dotworld abstraction you have to
+          learn. Your editor, your test runner and your <code>git</code> all work in it unchanged.
+        </p>
+        <div class="callbox" style="margin-top:18px">
+          <b>Conflicts stay git's.</b> dotworld reports the conflicted <i>paths</i>, exactly as git
+          does, and you settle them in your own workspace. It never hands back a payload with both
+          sides in it for you to answer. What it <i>does</i> do is conflict less — the per-property
+          merge strategies resolve divergences git would have stopped on.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="plugins">
+  <div class="body">
+    <div class="kicker">dotworld · 05</div>
+    <h1>Plugins</h1>
+    <p class="lede" style="margin-top:22px; max-width:940px">
+      Local, detachable modules that may hold a model and credentials. Everything in dotworld that
+      needs an LLM is one of these — which is what keeps the kernel free of both.
+    </p>
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      four shipped: <span style="color:var(--amber)">obsolescence · summarizer · comms · context-loader</span>
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="plugins">
+  <div class="kicker">how one hooks up</div>
+  <h2>Named in a config file, loaded at boot, contributes commands</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile json" style="flex:1; font-size:14px"><span class="fname">.dotworld/dotworld.config.json &nbsp;·&nbsp; composition is declared, never discovered</span><span class="punc">{</span>
+  <span class="key">"plugins"</span><span class="punc">: [</span>
+    <span class="punc">{</span> <span class="key">"id"</span><span class="punc">:</span> <span class="str">"obsolescence"</span><span class="punc">,</span>
+      <span class="key">"engine"</span><span class="punc">:</span> <span class="str">"rule-based"</span><span class="punc">,</span>
+      <span class="key">"settings"</span><span class="punc">: {</span> <span class="key">"rules"</span><span class="punc">: [] } },</span>
+    <span class="punc">{</span> <span class="key">"id"</span><span class="punc">:</span> <span class="str">"summarizer"</span><span class="punc">,</span>
+      <span class="key">"engine"</span><span class="punc">:</span> <span class="str">"claude-code"</span><span class="punc">,</span>
+      <span class="key">"settings"</span><span class="punc">: {</span> <span class="key">"model"</span><span class="punc">:</span> <span class="str">"haiku"</span><span class="punc">,</span>
+                     <span class="key">"maxBodyChars"</span><span class="punc">:</span> 12000<span class="punc">,</span>
+                     <span class="key">"timeoutMs"</span><span class="punc">:</span> 60000 <span class="punc">} },</span>
+    <span class="punc">{</span> <span class="key">"id"</span><span class="punc">:</span> <span class="str">"comms"</span><span class="punc">,</span>          <span class="key">"engine"</span><span class="punc">:</span> <span class="str">"fs-log"</span> <span class="punc">},</span>
+    <span class="punc">{</span> <span class="key">"id"</span><span class="punc">:</span> <span class="str">"context-loader"</span><span class="punc">,</span> <span class="key">"engine"</span><span class="punc">:</span> <span class="str">"compose"</span> <span class="punc">}</span>
+  <span class="punc">]</span>
+<span class="punc">}</span>
+
+<span class="cm">a secret is NAMED, never inlined:</span>
+    <span class="key">"credsEnv"</span><span class="punc">:</span> <span class="str">"ANTHROPIC_API_KEY"</span></div>
+      <div>
+        <p class="lede" style="font-size:19px; margin-bottom:14px">Three moving parts.</p>
+        <p class="sub" style="margin-bottom:12px">
+          <b style="color:var(--ink)">The manifest</b> — <code>id</code>, <code>version</code>,
+          <code>requiresHost</code>, the <code>engines</code> it accepts, and a
+          <code>factory</code>. If the config names an engine the manifest doesn't list, the plugin
+          refuses at boot instead of half-working.
+        </p>
+        <p class="sub" style="margin-bottom:12px">
+          <b style="color:var(--ink)">The command seam</b> — a plugin declares
+          <span class="pl-seam">contributesCommands</span> and hands the kernel ordinary
+          <span class="pl-seam">CommandDef</span>s at boot. They then appear in
+          <code>dot --help</code>, in the MCP tool catalog and over HTTP identically to a kernel
+          command. Nothing downstream can tell the difference.
+        </p>
+        <p class="sub" style="margin-bottom:12px">
+          <b style="color:var(--ink)">The engine seam</b> — the one place a model may live, behind
+          an interface. Tests inject a deterministic fake; production injects a real model; the
+          plugin code is the same either way.
+        </p>
+        <div class="callbox">
+          <b>Detach it and the command is absent, not present-and-refusing.</b> Nothing in the kernel
+          names these plugins, so there is no stub to fall back to. <code>plugin_list</code> reports
+          the live composition, and anything skipped at boot with its reason.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="plugins">
+  <div class="kicker">plugin · 1 of 4</div>
+  <h2>obsolescence — the reference plugin</h2>
+  <div class="body">
+    <div class="pl-hero">
+      <div>
+        <dl class="pl-facts">
+          <dt>command</dt><dd><code>obsolescence_review</code></dd>
+          <dt>engines</dt><dd><code>rule-based</code> — the seam is <span class="pl-seam">ObsolescenceJudge</span>, so a real LLM drops in behind it</dd>
+          <dt>holds a model</dt><dd>it may — that is why it is a plugin</dd>
+          <dt>composes</dt><dd><code>graph_affected</code>, <code>file_read</code>, the graph, git — all general kernel primitives</dd>
+        </dl>
+        <div class="callbox" style="margin-top:20px">
+          <b>Why it is the reference.</b> Candidate generation, judgment and the file rewrite all
+          live outside the kernel, composing primitives any consumer could compose. Nothing was
+          added to the kernel to make this plugin possible.
+        </div>
+      </div>
+      <div>
+        <p class="lede" style="font-size:19px">You point it at a decision. It finds every note that decision contradicts.</p>
+        <p class="sub" style="margin-top:14px">
+          A confirmed correction <b>edits the actual file</b> — never a read-time overlay that makes
+          a document mean something different depending on who reads it.
+        </p>
+        <p class="sub" style="margin-top:14px">
+          Every edit lands as unlanded commits on the plugin's own branch,
+          <code>users/obsolescence</code>. <i>That branch is the review surface.</i>
+          <code>git diff ref=users/obsolescence</code> is the diff, <code>git merge</code> accepts it,
+          <code>git branch -D</code> throws it away.
+        </p>
+        <p class="sub" style="margin-top:14px">
+          The <code>supersedes</code> edge it writes is <b>provenance, not truth</b> — a record of
+          what replaced what, queryable through <code>graph_provenance</code>.
+        </p>
+        <p class="annot" style="margin-top:16px">
+          Nothing in the kernel models a review queue, an approval state or a proposal. A branch
+          already is all three.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="plugins">
+  <div class="kicker">plugin · 2 of 4</div>
+  <h2>summarizer — the clearest case for the tier</h2>
+  <div class="body">
+    <div class="pl-hero">
+      <div>
+        <dl class="pl-facts">
+          <dt>command</dt><dd><code>summary_refresh</code></dd>
+          <dt>engines</dt><dd><code>rule-based</code> (deterministic, offline) · <code>claude-code</code> (a real model)</dd>
+          <dt>seam</dt><dd><span class="pl-seam">SummaryWriter</span> — <code>write({ path, title, body, currentSummary })</code></dd>
+          <dt>settings</dt><dd><code>model</code>, <code>maxBodyChars</code>, <code>timeoutMs</code></dd>
+        </dl>
+        <div class="callbox" style="margin-top:20px">
+          <b>The split is exact.</b> The kernel <i>detects</i> the drift: it stamps
+          <code>summary_hash</code> with the body the summary was written against, so a stale
+          summary is a hash comparison, not a judgment. What the summary should now <i>say</i>
+          needs a model — so it cannot live in the kernel at all.
+        </div>
+      </div>
+      <div>
+        <div class="dotfile" style="font-size:14px"><span class="fname">every dot the summarizer has touched</span><span class="k">summary</span>: <span class="v">'Implementation of CombatSystem.</span>
+  <span class="v">tryMeleeAttack() gates on a stamina check but</span>
+  <span class="v">does not yet consume stamina, animate, or do</span>
+  <span class="v">hit detection (TODO)…'</span>
+<span class="ci-line"><span class="k">summary_hash</span>: <span class="v">46fd70cd5dd2f05…</span></span></div>
+        <p class="sub" style="margin-top:16px">
+          The hash is the body this sentence was true of. Edit the file and the hash no longer
+          matches — the summary is now <i>suspect</i>, mechanically, with nobody having to notice.
+        </p>
+        <p class="sub" style="margin-top:14px">
+          <code>summary_refresh</code> rewrites only the ones that no longer match. On a repo of
+          thousands of files that is the difference between a nightly job and an unaffordable one.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="plugins">
+  <div class="kicker">plugin · 3 of 4</div>
+  <h2>comms — a message board for parallel agents</h2>
+  <div class="body">
+    <div class="pl-hero">
+      <div>
+        <dl class="pl-facts">
+          <dt>commands</dt><dd><code>comms_send</code> · <code>comms_read</code></dd>
+          <dt>engine</dt><dd><code>fs-log</code> — the only one. Appending a line and filtering by <code>to</code>/<code>seq</code> is not a judgment call, so there is no model seam here at all.</dd>
+          <dt>storage</dt><dd><code>.dotworld/derived/comms/</code>, rooted at the <b>source</b>, not the worktree</dd>
+          <dt>message</dt><dd><code>seq</code> · <code>at</code> · <code>from</code> · <code>to</code> · <code>topic</code> · <code>body</code></dd>
+        </dl>
+        <div class="callbox" style="margin-top:20px">
+          <b>One deliberate exception, and it is the whole point.</b> Every other derived store is
+          per-worktree on purpose. Cross-workspace messaging needs the opposite: one log every
+          worktree of a source can see.
+        </div>
+      </div>
+      <div>
+        <div class="term" style="font-size:13.5px; line-height:1.6"><span class="prompt">$</span> dot comms_send from=<span class="h">deck-restructure</span> to=all topic=start \
+    body='Restructuring the slide deck only: parts/*.html,
+    README.md, scripts/build-deck.mjs. NO src/, NO test/.
+    Zero overlap with issue-400 or config-401.'
+
+<span class="prompt">$</span> dot comms_read as=<span class="h">deck-restructure</span>
+
+<span class="note">{ "seq": 21, "from": "</span><span class="h">issue-399</span><span class="note">", "topic": "</span>done<span class="note">",</span>
+<span class="note">  "body": "</span><span class="plus">issue-399 DONE, committed f27aac0.</span>
+<span class="note">    …I created review-integration at f27aac0 — that is</span>
+<span class="note">    main plus my commit only. Merge yours into it when</span>
+<span class="note">    you land." }</span>            <span class="note">← real traffic, this week</span></div>
+        <p class="annot" style="margin-top:14px">
+          Disposable, like everything under <code>derived/</code>. Deleting it loses in-flight
+          messages, never durable state — <b>comms is scratch coordination, not a record</b>. The
+          record of what the agents did is the commits they landed.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="plugins">
+  <div class="kicker">plugin · 4 of 4</div>
+  <h2>context-loader — a dynamic CLAUDE.md</h2>
+  <div class="body">
+    <div class="pl-hero">
+      <div>
+        <dl class="pl-facts">
+          <dt>command</dt><dd><code>context_load</code></dd>
+          <dt>engine</dt><dd><code>compose</code> — no model, no derived content, no third source of truth</dd>
+          <dt>modes</dt><dd><code>mode=dot</code> joins the dots · <code>mode=file</code> joins the bodies</dd>
+          <dt>composes</dt><dd>the same primitives <code>file_read</code> and <code>dot_get</code> are built on</dd>
+        </dl>
+        <div class="callbox" style="margin-top:20px">
+          <b>Why it is a plugin and not a command.</b> It computes nothing new — it is formatting
+          convenience over two existing sources of truth. That is exactly the kind of thing the
+          kernel should not grow.
+        </div>
+      </div>
+      <div>
+        <p class="lede" style="font-size:19px">Point it at a list of files, or at an index, and get one prompt-ready blob.</p>
+        <p class="sub" style="margin-top:14px">
+          A hand-maintained context document goes stale the moment someone renames a file, and
+          nobody finds out until an agent confidently reasons from a paragraph about code that no
+          longer exists.
+        </p>
+        <p class="sub" style="margin-top:14px">
+          An <b>index</b> is an ordinary file that is a list of links (<code>index_create</code>
+          writes one). Point <code>context_load</code> at it, and maintaining your agent's context
+          means pruning that list — not rewriting a document.
+        </p>
+        <div class="bigquote" style="font-size:22px; margin-top:20px">
+          Prune the <em>index</em>, not the document.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="plugins">
+  <div class="kicker">writing your own</div>
+  <h2>What a plugin actually costs you</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="term" style="flex:1.05; font-size:13.5px; line-height:1.7"><span class="note">src/plugins/&lt;your-plugin&gt;/</span>
+  <span class="h">manifest.ts</span>   <span class="note">— what it is, and how to build it</span>
+  <span class="h">plugin.ts</span>     <span class="note">— what it does</span>
+
+<span class="note">// manifest.ts</span>
+export const yourManifest: PluginManifest = {
+  <span class="h">id</span>: 'your-plugin',
+  <span class="h">version</span>: '1.0.0',
+  <span class="h">requiresHost</span>: '^1.0.0',
+  <span class="h">engines</span>: ['offline', 'real'],
+  <span class="h">factory</span>({ app, engine, settings }) {
+    if (engine !== 'offline' &amp;&amp; engine !== 'real')
+      throw new Error(`unknown engine '${engine}'`);
+    return { instance: new YourPlugin(app, engine) };
+  },
+};
+
+<span class="note">// plugin.ts — the command seam</span>
+<span class="h">contributesCommands</span>(): CommandDef[] {
+  return [{ name: 'your_command', meta: { …params… },
+            handler: async (ctx, args) =&gt; { … } }];
+}</div>
+      <div style="flex:.95">
+        <p class="lede" style="font-size:19px; margin-bottom:14px">Four rules, and they are the whole design.</p>
+        <p class="sub" style="margin-bottom:12px">
+          <b style="color:var(--ink)">1 · Compose kernel primitives.</b> If you need something the
+          kernel doesn't expose, argue for a <i>general</i> primitive any consumer could use — never
+          kernel code that knows your plugin's name.
+        </p>
+        <p class="sub" style="margin-bottom:12px">
+          <b style="color:var(--ink)">2 · Put the model behind an engine seam.</b> Ship a
+          deterministic offline engine as well. That is what makes the plugin testable without a
+          network, and what lets someone swap your model for theirs.
+        </p>
+        <p class="sub" style="margin-bottom:12px">
+          <b style="color:var(--ink)">3 · Write to files, or to a branch.</b> No new store. If your
+          output is a proposal, land it on your own <code>users/</code> branch and let git be the
+          review queue.
+        </p>
+        <p class="sub" style="margin-bottom:12px">
+          <b style="color:var(--ink)">4 · Declare your properties.</b> If you write metadata,
+          <code>property_register</code> it with a merge strategy — otherwise your keys will refuse
+          to auto-resolve the first time two workspaces diverge.
+        </p>
+        <div class="callbox">
+          <b>Then name it in the config.</b> Your command appears in the CLI, the MCP tool catalog
+          and the HTTP surface at once, because all three are generated from the same registry.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="interfaces">
+  <div class="body">
+    <div class="kicker">dotworld · 06</div>
+    <h1>Faces, the waist, and satellites</h1>
+    <p class="lede" style="margin-top:22px; max-width:940px">
+      The same commands reach you three ways. Between any remote caller and the kernel there is
+      exactly one door — and today it is standing open on purpose.
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="interfaces">
+  <div class="kicker">three faces, one command set</div>
+  <h2>Today we are only using one of them</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div class="if-face">
+        <h4>CLI <span class="if-tag on">this deck</span></h4>
+        <div class="who">cli.ts · a human at a terminal</div>
+        <p>The only face with a working directory, so it is the only one that can infer which source
+           you mean from where you are standing. Everything you will see for the rest of this deck
+           is <code>dot &lt;command&gt; key=value</code>.</p>
+        <p style="margin-top:10px"><code>dot --help</code> is generated from the command registry,
+           so the interface contract cannot drift from the code.</p>
+      </div>
+      <div class="if-face off">
+        <h4>MCP <span class="if-tag off">not today</span></h4>
+        <div class="who">mcp-server.ts · an agent</div>
+        <p>The tool catalog is generated from the same registry. Every command's description
+           <i>is</i> the tool schema — when the caller is a model, that text is the API.</p>
+        <p style="margin-top:10px">Fully built and running. Left out of this deck so the demos read
+           as commands you could type yourself.</p>
+      </div>
+      <div class="if-face off">
+        <h4>HTTP <span class="if-tag off">not today</span></h4>
+        <div class="who">http.ts · a service</div>
+        <p>No working directory, so it never infers a source — the caller names one explicitly or
+           gets an error.</p>
+        <p style="margin-top:10px">The face a remote caller would actually arrive through, which is
+           why the next slide matters.</p>
+      </div>
+    </div>
+    <div class="callbox" style="margin-top:20px">
+      <b>One registry, three faces, generated.</b> A command cannot exist in one face and not the
+      others, and a parameter cannot be honoured but undeclared —
+      dispatch refuses any key no command declares, naming the ones it has. A silently dropped
+      parameter is indistinguishable from one you never passed, and most parameters have defaults,
+      so you would get <code>ok: true</code> and an answer computed from a default you did not choose.
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="interfaces">
+  <div class="kicker">the waist, and what is beyond it</div>
+  <h2>One door — currently unlocked, deliberately</h2>
+  <div class="body">
+    <div class="cols">
+      <div>
+        <table class="props" style="font-size:16px">
+          <tr><th style="width:30%">auth mode</th><th>what it means</th></tr>
+          <tr class="hotrow">
+            <td>none <span class="if-tag on">default</span></td>
+            <td>No credential required. Every command runs as the fixed user <code>local</code>.
+              This is what is running today, and it is the right answer for a single person on
+              their own machine.</td>
+          </tr>
+          <tr>
+            <td>managed</td>
+            <td>A bearer key maps to a user. Built and tested; refuses to start with no keys rather
+              than falling back to open.</td>
+          </tr>
+          <tr>
+            <td>proxy</td>
+            <td>A trusted upstream asserts the identity in a header. Requires a shared secret —
+              without one the header is not trusted, it is merely believed.</td>
+          </tr>
+        </table>
+        <div class="callbox" style="margin-top:18px">
+          <b>The identity is not a label.</b> It becomes the git author of durable commits, a branch
+          name, and a directory path. That is why a mode that cannot be honoured throws at startup
+          instead of quietly degrading — and why <code>none</code> being the default is a
+          <i>deployment</i> choice, not a missing feature.
+        </div>
+      </div>
+      <div>
+        <p class="lede" style="font-size:20px; margin-bottom:14px">Satellites — the layer that is designed, not built.</p>
+        <p class="sub" style="margin-bottom:12px">
+          A satellite is a remote, API-only capability: something that runs somewhere else and
+          reaches dotworld over the network. <b>None exist yet.</b>
+        </p>
+        <p class="sub" style="margin-bottom:12px">
+          The distinction that makes the layer worth naming is where the traffic goes.
+          A <b>plugin</b> is local — it sits beside the files and bypasses the waist, and that
+          locality <i>is</i> its definition. A <b>satellite</b> is remote, so it has no choice but
+          to cross the waist like any other caller.
+        </p>
+        <p class="sub" style="margin-bottom:12px">
+          Which means the work to support satellites is not new architecture. It is turning on a
+          mode that already exists, and running a face that already ships.
+        </p>
+        <div class="bigquote" style="font-size:22px; margin-top:18px">
+          The kernel holds no model and no secret. <em>It is the waist.</em>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="flaky-test-triage">
+  <div class="body">
+    <div class="kicker">use case · 1 of 7</div>
+    <h1>Flaky Test Triage</h1>
+    <div style="margin-top:22px">
+<p class="lede" style="font-size:19px">A test fails intermittently. Someone mutters <span class="dim">“yeah, that one's flaky”</span>
+    and re-runs the build. The knowledge lives in Slack scrollback, or in nobody's memory at all.</p>
+    <p class="lede" style="font-size:19px; margin-top:14px">Flake dashboards (BuildPulse, Trunk) hold the data <em>outside the repo</em> —
+    a snapshot, on someone else's server.</p>
+    <p class="lede punch" style="margin-top:18px">You can't diff a dashboard. You can't bisect it. You can't review it in a PR.</p>
+    </div>
+
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      repo: dotworld-demo · branch: <span style="color:var(--teal)">demo/flaky-test-triage</span> · baseline: master @ 4d24e97
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="flaky-test-triage">
+  <div class="kicker">1 · the initial state</div>
+  <h2>tests/test_pathfinding.cpp — day one</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="font-size:15.5px"><span class="fname">.dotworld/dots/tests/test_pathfinding.cpp.dot.md &nbsp;·&nbsp; the file's dot, tracked in git</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">tests/test_pathfinding.cpp</span>
+<span class="k">title:</span> <span class="v">test_pathfinding</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread — summarize this file --&gt;</span>
+<span class="k">owner:</span> <span class="v">jonas</span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede">Every source file in the repo has a <b>dot</b>: a small markdown
+        sidecar with YAML properties, living in <code>.dotworld/</code>, versioned by git
+        like any other file.</p>
+        <p class="lede" style="margin-top:18px">Right now this one knows almost nothing —
+        just an <code>owner</code>. No flake data exists anywhere.</p>
+        <div class="callbox"><b>Remember these six lines.</b> Everything in this demo happens to this file — and we'll come back to it at the end.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="flaky-test-triage">
+  <div class="kicker">2 · what we ran · commit fe29f13</div>
+  <h2>Registering a property writes a real file into the repo</h2>
+  <p class="sub">dotworld refuses to store a property nobody declared, so the metadata stays a schema instead of a junk drawer.</p>
+  <div class="body">
+    <div class="cols tight">
+      <div>
+        <div class="term"><span class="prompt">$</span> dot property_register <span class="h">name=flakeRate</span> \
+    <span class="h">merge=last-writer</span> \
+    description="Flake rate (0-1) over the last 50 CI runs…"
+<span class="note">{ "ok": true, "result": { "name": "flakeRate", … } }</span>
+
+<span class="prompt">$</span> dot property_set file=tests/test_pathfinding.cpp \
+    key=<span class="h">flakiness</span> value=0.4
+<span class="note">BAD_PARAMS: 'flakiness' is not registered in this
+working tree. property_list shows the vocabulary.</span></div>
+        <div class="callbox" style="margin-top:16px">
+          The refusal is the feature: <b>one typo can't fork your vocabulary</b> into <code>flakeRate</code> and <code>flakiness</code>.
+        </div>
+      </div>
+      <div class="dotfile json"><span class="fname">.dotworld/properties.json &nbsp;·&nbsp; committed, reviewable, diffable</span><span class="punc">{</span>
+  <span class="key">"failureCount"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"counter"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Cumulative failure count</span>
+      <span class="str">across nightly CI runs…"</span>
+  <span class="punc">},</span>
+  <span class="key">"flakeRate"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Flake rate (0-1) over</span>
+      <span class="str">the last 50 CI runs…"</span>
+  <span class="punc">},</span>
+  <span class="key">"quarantined"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Whether this test is</span>
+      <span class="str">excluded from required CI runs…"</span>
+  <span class="punc">}</span>
+<span class="punc">}</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="flaky-test-triage">
+  <div class="kicker">3 · what changed</div>
+  <h2>tests/test_pathfinding.cpp — day six</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div style="flex:0 0 30%">
+        <div class="dotfile" style="opacity:.5; font-size:13.5px"><span class="fname">day one — where we started</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">tests/test_pathfinding.cpp</span>
+<span class="k">title:</span> <span class="v">test_pathfinding</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread --&gt;</span>
+<span class="k">owner:</span> <span class="v">jonas</span>
+<span class="cm">---</span></div>
+        <p class="sub" style="font-size:15px; margin-top:14px">Those six lines are still there,
+        character for character. Nothing was replaced.</p>
+      </div>
+      <div class="dotfile" style="font-size:15px; flex:0 0 38%"><span class="fname">day six &nbsp;·&nbsp; as of c0a1b48</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">tests/test_pathfinding.cpp</span>
+<span class="k">title:</span> <span class="v">test_pathfinding</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread — summarize this file --&gt;</span>
+<span class="k">owner:</span> <span class="v">jonas</span>
+<span class="ci-line"><span class="k">failureCount:</span> <span class="v">5</span>          <span class="ci-tag">← CI</span></span>
+<span class="ci-line"><span class="k">lastFailure:</span> <span class="v">'2026-08-19'</span>  <span class="ci-tag">← CI</span></span>
+<span class="ci-line"><span class="k">flakeRate:</span> <span class="v">0.34</span>       <span class="ci-tag">← CI</span></span>
+<span class="ci-line"><span class="k">quarantined:</span> <span class="v">true</span>     <span class="ci-tag">← CI</span></span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede" style="font-size:19px">Four new lines. Three tools now read them and just work:</p>
+        <p class="lede" style="margin-top:14px; font-size:18px"><code>run-tests.sh</code> reads
+        <code>quarantined</code> → <b>skips the test.</b> The build stops being red for reasons nobody cares about.</p>
+        <p class="lede" style="margin-top:12px; font-size:18px"><code>flaky-nudge.sh</code> queries
+        <code>flakeRate</code> across every dot → <b>weekly report grouped by owner.</b> jonas gets the nudge, not a mailing list.</p>
+        <p class="lede" style="margin-top:12px; font-size:18px"><code>git log</code> on the dot →
+        <b>the whole story,</b> for free.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="review-debt">
+  <div class="body">
+    <div class="kicker">use case · 2 of 7</div>
+    <h1>Review Debt</h1>
+    <div style="margin-top:22px">
+<p class="lede" style="font-size:19px">Mira runs the team. She wants one thing: the files that have gone longest
+    without a human reading them <em>end to end</em>, weighted by how much they've churned since.</p>
+    <p class="lede" style="font-size:19px" style="margin-top:16px">Git knows who <b>changed</b> a file. It does not know who
+    <b>read and judged</b> one. Review approvals live in the forge, attached to pull requests,
+    and expire from view the moment the PR closes.</p>
+    <p class="lede punch" style="margin-top:16px">There is no <code>lastHumanReview</code> field.
+    Not in the code, not in CI, not in any dot. It has to be invented.</p>
+    <p class="sub" style="margin-top:20px; font-size:17px">This is the greenfield demo: what happens
+    when the property you need doesn't exist yet.</p>
+    </div>
+
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      repo: dotworld-demo · branch: <span style="color:var(--teal)">demo/review-debt</span> · baseline: master @ 4d24e97
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="review-debt">
+  <div class="kicker">1 · the initial state</div>
+  <h2>src/gameplay/save/SaveGame.cpp — before</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="font-size:14px"><span class="fname">.dotworld/dots/src/gameplay/save/SaveGame.cpp.dot.md &nbsp;·&nbsp; on master</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/gameplay/save/SaveGame.cpp</span>
+<span class="k">title:</span> <span class="v">SaveGame — implementation</span>
+<span class="k">tags:</span> <span class="v">[save, gameplay, serialization, stub]</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">reviewStatus:</span> <span class="v">changes-requested</span>
+<span class="k">riskLevel:</span> <span class="v">high</span>
+<span class="k">reviewedBy:</span>
+  <span class="v">- save-reviewer</span>
+<span class="k">summary_hash:</span> <span class="v">9f318039794e665af96…</span>
+<span class="cm">---</span>
+
+<span class="cm">save-reviewer review note: save() calls</span>
+<span class="cm">writeInventoryBlock() and writeWorldFlags…</span></div>
+      <div>
+        <p class="lede">A reviewer has been here. The dot already records <b>what</b> they concluded —
+        risk is high, changes requested, <code>save()</code> returns <code>true</code> even when
+        nothing was written.</p>
+        <p class="lede" style="margin-top:16px">What it does <em>not</em> record is <b>when</b>.
+        A year-old "changes-requested" and a yesterday-old one look identical here,
+        and only one of them is still trustworthy.</p>
+        <div class="callbox"><b>Remember this file.</b> It is about to become the worst
+        file in the repo, and then the best.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="review-debt">
+  <div class="kicker">2 · what we ran · commit d8126ba</div>
+  <h2>Two commands later, the property exists</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div class="term" style="font-size:13.5px; line-height:1.65"><span class="prompt">$</span> dot property_register <span class="h">name=lastHumanReview</span> \
+    merge=<span class="h">last-writer</span> \
+    description='ISO date a human last meaningfully
+    reviewed this file end-to-end — read it, judged it
+    correct, <span class="plus">not just skimmed a diff</span>. Used to compute
+    review debt against churn since that date.'
+
+<span class="prompt">$</span> dot property_register <span class="h">name=reviewNotes</span> \
+    merge=<span class="h">line-union</span> \
+    description='Free-text observations left by a human
+    reviewer, one line per note…'</div>
+      <div class="dotfile json" style="font-size:13.5px"><span class="fname">.dotworld/properties.json &nbsp;·&nbsp; +8 lines, committed with the tool</span><span class="punc">{</span>
+  <span class="key">"lastHumanReview"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"ISO date a human last</span>
+      <span class="str">meaningfully reviewed this file…"</span>
+  <span class="punc">},</span>
+  <span class="key">"reviewNotes"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"line-union"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Free-text observations</span>
+      <span class="str">left by a human reviewer…"</span>
+  <span class="punc">}</span>
+<span class="punc">}</span></div>
+    </div>
+    <table class="props" style="margin-top:16px; font-size:15.5px">
+      <tr><th>property</th><th>merge</th><th>why that strategy</th></tr>
+      <tr><td>lastHumanReview</td><td><span class="strat">last-writer</span></td>
+          <td>A single point-in-time fact. The newest review date is definitionally the right one — there is nothing to union.</td></tr>
+      <tr class="hotrow"><td>reviewNotes</td><td><span class="strat union">line-union</span></td>
+          <td>Two reviewers on two worktrees may both leave a note in the same window — one flags correctness, one flags doc drift.
+              Under last-writer whichever merged second would <b>silently erase the other's finding</b>. Line-union keeps both as separate lines.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="slide" data-demo="review-debt">
+  <div class="kicker">3 · what changed</div>
+  <h2>src/gameplay/save/SaveGame.cpp — after</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div style="flex:0 0 27%">
+        <div class="dotfile" style="opacity:.5; font-size:13px"><span class="fname">before</span><span class="k">reviewStatus:</span> <span class="v">changes-requested</span>
+<span class="k">riskLevel:</span> <span class="v">high</span>
+<span class="k">reviewedBy:</span>
+  <span class="v">- save-reviewer</span>
+<span class="k">summary_hash:</span> <span class="v">9f318039…</span></div>
+        <p class="sub" style="font-size:14.5px; margin-top:12px">Every original line survives.
+        The review added to the dot; it replaced nothing.</p>
+      </div>
+      <div class="dotfile" style="flex:0 0 44%; font-size:13.5px"><span class="fname">after &nbsp;·&nbsp; as of 5cd7825</span><span class="k">reviewStatus:</span> <span class="v">changes-requested</span>
+<span class="k">riskLevel:</span> <span class="v">high</span>
+<span class="k">reviewedBy:</span>
+  <span class="v">- save-reviewer</span>
+<span class="k">summary_hash:</span> <span class="v">9f318039…</span>
+<span class="ci-line"><span class="k">lastHumanReview:</span> <span class="v">'2026-08-20'</span>  <span class="ci-tag">← mira</span></span>
+<span class="ci-line"><span class="k">reviewNotes:</span> <span class="v">|-</span>              <span class="ci-tag">← mira</span></span>
+<span class="ci-line">  <span class="v">Save version bump (v3-&gt;v4) looked</span></span>
+<span class="ci-line">  <span class="v">right but success return value is</span></span>
+<span class="ci-line">  <span class="v">not trustworthy on partial write…</span></span>
+<span class="ci-line">  <span class="v">2026-08-20 mira: re-reviewed off the</span></span>
+<span class="ci-line">  <span class="v">heat-map report (was top offender,</span></span>
+<span class="ci-line">  <span class="v">score 376). Confirmed save() still</span></span>
+<span class="ci-line">  <span class="v">unconditionally returns true; filed</span></span>
+<span class="ci-line">  <span class="v">as the next fix.</span></span></div>
+      <div>
+        <p class="lede" style="font-size:18px">Two notes now sit on this file, from two reviews months apart.
+        Neither overwrote the other — that is <code>line-union</code> doing its job.</p>
+        <div class="callbox" style="margin-top:14px">
+          The re-review concluded <b>"still broken, filed separately"</b> — and that is a legitimate
+          outcome to record. The debt is cleared because a human looked, not because the bug was fixed.
+        </div>
+        <p class="sub" style="margin-top:14px; font-size:16px">A reader six months from now gets the
+        finding, the date, and the reviewer, without opening a single pull request.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="context-budgeting">
+  <div class="body">
+    <div class="kicker">use case · 3 of 7</div>
+    <h1>Context Budgeting</h1>
+    <div style="margin-top:22px">
+<p class="lede" style="font-size:19px">Ask an agent how input handling maps keys to actions and it can find every
+    plausible file in the engine — main loop, ECS, render, audio, input, physics. That's 14 files
+    in this repo's core surface alone.</p>
+    <p class="lede" style="font-size:19px; margin-top:14px">Grep and embedding search return <span class="dim">matches</span>,
+    not a budget. Every candidate still costs a full read to rule out, and nothing tells the agent
+    that cost before it pays it.</p>
+    <p class="lede punch" style="margin-top:18px">You can find every file. You still don't know what any of them cost to open.</p>
+    </div>
+
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      repo: dotworld-demo · branch: <span style="color:var(--teal)">demo/context-budgeting</span> · baseline: master @ 4d24e97
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="context-budgeting">
+  <div class="kicker">1 · the initial state</div>
+  <h2>src/core/Entity.h — before this demo</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="font-size:12.5px"><span class="fname">.dotworld/dots/src/core/Entity.h.dot.md &nbsp;·&nbsp; at baseline, master @ 4d24e97</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/core/Entity.h</span>
+<span class="k">source_id:</span> <span class="v">test-repo</span>
+<span class="k">title:</span> <span class="v">Entity</span>
+<span class="k">tags:</span> <span class="v">[]</span>
+<span class="k">source_path:</span> <span class="v">$DOTWORLD_ROOT/src/core/Entity.h</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread - summarize this file --&gt;</span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede">Every source file gets a <b>dot</b>: a markdown sidecar with YAML
+        properties, living in <code>.dotworld/</code>, tracked in git like any other file.
+        <code>Entity.h</code> is 680 bytes — a POD struct: a generation-tagged index handle
+        used as the ECS's opaque reference to a live or dead slot.</p>
+        <p class="lede" style="margin-top:18px">It's one of 14 files linked from
+        <code>docs/engine-map.md</code>, the tier-1 index for the engine's core surface. Right
+        now its dot knows the <code>id</code> and the <code>kind</code> — nothing else. No
+        summary, no cost estimate. An agent budgeting a question can't tell this file apart
+        from any other candidate without opening it.</p>
+        <div class="callbox"><b>Remember these seven lines.</b> Two commits from now this dot has a summary, a hash, and a token count — and its source file is never touched.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="context-budgeting">
+  <div class="kicker">2 · what we ran · commit adfcc5e</div>
+  <h2>tokenCount is the only property this demo had to add</h2>
+  <p class="sub">dotworld already reports whether a summary is still true: <code>summary_hash</code>
+  is a sha1 of the source bytes, and <code>dot_get</code> compares it live. Nothing to register for that half.</p>
+  <div class="body">
+    <div class="cols tight">
+      <div>
+        <div class="term" style="font-size:14px"><span class="prompt">$</span> dot property_register <span class="h">name=tokenCount</span> \
+    <span class="h">merge=last-writer</span> \
+    description="Estimated tokens to load the full
+    file: ceil(bytes/4). Maintained by
+    tools/token-stamp.sh so agents can budget
+    context before opening a file."
+
+<span class="note"># the only writer of tokenCount — tools/token-stamp.sh</span>
+bytes=$(wc -c &lt; "$f")
+tokens=$(( (bytes + 3) / 4 ))
+dot property_set file="$f" key=tokenCount \
+    value="$tokens" --user "$user"</div>
+        <div class="callbox" style="margin-top:14px">
+          <b>summary_hash and summaryStatus needed no <code>property_register</code> call at all.</b>
+          They're native to <code>dot_get</code>. The team registered exactly one thing.
+        </div>
+      </div>
+      <div class="dotfile json"><span class="fname">.dotworld/properties.json &nbsp;·&nbsp; this demo's one entry</span><span class="punc">{</span>
+  <span class="key">"tokenCount"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Estimated tokens to load the</span>
+      <span class="str">full file: ceil(bytes/4). Maintained</span>
+      <span class="str">by tools/token-stamp.sh so agents can</span>
+      <span class="str">budget context before opening a file."</span>
+  <span class="punc">}</span>
+<span class="punc">}</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="context-budgeting">
+  <div class="kicker">3 · what changed</div>
+  <h2>src/core/Entity.h — as of 19cc1b8</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div style="flex:0 0 22%">
+        <div class="dotfile" style="opacity:.5; font-size:12.5px"><span class="fname">baseline — where we started</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/core/Entity.h</span>
+<span class="k">title:</span> <span class="v">Entity</span>
+<span class="k">tags:</span> <span class="v">[]</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread --&gt;</span>
+<span class="cm">---</span></div>
+        <p class="sub" style="font-size:13.5px; margin-top:14px">Those lines are still there,
+        character for character. Nothing was replaced.</p>
+      </div>
+      <div class="dotfile" style="flex:0 0 47%; font-size:13.5px"><span class="fname">now &nbsp;·&nbsp; after 5790550 + adfcc5e</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/core/Entity.h</span>
+<span class="k">source_id:</span> <span class="v">test-repo</span>
+<span class="k">title:</span> <span class="v">Entity</span>
+<span class="ci-line"><span class="k">tags:</span> <span class="v">[core, ecs]</span>        <span class="ci-tag">← 5790550</span></span>
+<span class="k">source_path:</span> <span class="v">$DOTWORLD_ROOT/src/core/Entity.h</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="ci-line"><span class="k">summary:</span> <span class="v">'Defines Entity, a plain</span>  <span class="ci-tag">← 5790550</span></span>
+<span class="ci-line">  <span class="v">generation-tagged index handle</span></span>
+<span class="ci-line">  <span class="v">(uint32_t index + uint32_t</span></span>
+<span class="ci-line">  <span class="v">generation) with equality operators</span></span>
+<span class="ci-line">  <span class="v">and a static invalid() sentinel</span></span>
+<span class="ci-line">  <span class="v">(index 0xFFFFFFFF, generation 0).</span></span>
+<span class="ci-line">  <span class="v">Deliberately kept a POD with no</span></span>
+<span class="ci-line">  <span class="v">methods beyond comparison rather</span></span>
+<span class="ci-line">  <span class="v">than a handle class hierarchy --</span></span>
+<span class="ci-line">  <span class="v">rationale is in docs/systems/</span></span>
+<span class="ci-line">  <span class="v">ecs-overview.md. Used throughout</span></span>
+<span class="ci-line">  <span class="v">the ECS as the opaque reference to</span></span>
+<span class="ci-line">  <span class="v">a live or dead slot in</span></span>
+<span class="ci-line">  <span class="v">EntityManager.'</span></span>
+<span class="ci-line"><span class="k">summary_hash:</span> <span class="v">acadbccf…d5f15</span> <span class="ci-tag">← 5790550</span></span>
+<span class="ci-line"><span class="k">tokenCount:</span> <span class="v">170</span>            <span class="ci-tag">← adfcc5e</span></span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede" style="font-size:17.5px">Three new fields. dotworld already had the fourth:</p>
+        <p class="lede" style="margin-top:12px; font-size:16px"><code>dot context_load mode=dot</code>
+        reads title + tags + summary + tokenCount for all 14 <code>engine-map.md</code> files without
+        opening any of them.</p>
+        <p class="lede" style="margin-top:10px; font-size:16px"><code>tools/token-stamp.sh</code>
+        reruns on every merge to master, so <code>tokenCount</code> never drifts far from the real file size.</p>
+        <p class="lede" style="margin-top:10px; font-size:16px"><code>dot_get</code> compares
+        <code>summary_hash</code> to the live file bytes on every call. <b>summaryStatus: current</b> —
+        no field anyone had to add to get that.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="doc-obsolescence">
+  <div class="body">
+    <div class="kicker">use case · 4 of 7</div>
+    <h1>Document Obsolescence</h1>
+    <div style="margin-top:22px">
+<p class="lede" style="font-size:19px">When code changes and its documentation doesn't, nothing anywhere records that
+    the doc is now lying. The file's timestamp is old, its diff is empty, and it reads as
+    confidently as the day it was true.</p>
+    <p class="lede" style="font-size:19px" style="margin-top:16px">This repo has already been burned once: a postmortem in
+    <code>docs/postmortems/alpha-postmortem.md</code> has a section titled
+    <span class="mono dim">"documentation drift"</span> about <code>save-load.md</code> describing
+    v3 after the code had moved to v4.</p>
+    <p class="lede punch" style="margin-top:16px">You cannot grep for "documentation that is quietly wrong."</p>
+    </div>
+
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      repo: dotworld-demo · branch: <span style="color:var(--teal)">demo/doc-obsolescence</span> · baseline: master @ 4d24e97
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="doc-obsolescence">
+  <div class="kicker">1 · the initial state</div>
+  <h2>docs/systems/save-load.md — before</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="font-size:14px"><span class="fname">.dotworld/dots/docs/systems/save-load.md.dot.md &nbsp;·&nbsp; on master</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">docs/systems/save-load.md</span>
+<span class="k">title:</span> <span class="v">'Engine Module: Save/Load'</span>
+<span class="k">kind:</span> <span class="v">prose</span>
+<span class="k">summary:</span> <span class="v">'Design doc for Emberfall's save/load</span>
+  <span class="v">system. … correctly states the current format</span>
+  <span class="v">as <span style="color:var(--teal)">version 4</span> (Vael Spire discovery flags) with</span>
+  <span class="v"><span style="color:var(--teal)">version 3</span> as the minimum supported via an</span>
+  <span class="v">upgrade pass …'</span>
+<span class="k">summary_hash:</span> <span class="v">f857b2b5e01e25c082c09fd6…</span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede">Today this doc is <b>correct</b>. It describes save format v4, which is what the
+        code actually implements.</p>
+        <p class="lede" style="margin-top:16px">The dot carries a <code>summary_hash</code>:
+        the sha1 of the source file's bytes at the moment its summary was last verified.
+        That one field is the entire mechanism.</p>
+        <div class="callbox"><b>Remember this file.</b> It is about to become wrong
+        without anyone editing a single character of it.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="doc-obsolescence">
+  <div class="kicker">2 · what we ran</div>
+  <h2>graph_affected finds the doc nobody edited</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div class="term" style="font-size:13.5px; line-height:1.75"><span class="prompt">$</span> dot graph_affected <span class="h">seed=src/gameplay/save/SaveVersion.h</span>
+
+{
+  <span class="json"><span class="key">"path"</span></span>: <span class="json"><span class="str">"docs/systems/save-load.md"</span></span>,
+  <span class="json"><span class="key">"title"</span></span>: <span class="json"><span class="str">"Engine Module: Save/Load"</span></span>,
+  <span class="json"><span class="key">"reason"</span></span>: <span class="json"><span class="str">"embedding"</span></span>,
+  <span class="json"><span class="key">"score"</span></span>: <span class="h">0.9488</span>
+}
+<span class="note">← second-highest hit, behind only the decision file</span>
+
+<span class="prompt">$</span> dot graph_affected <span class="h">seed=docs/decisions/2026-08-20-save-format-v5.md</span>
+
+{
+  <span class="json"><span class="key">"path"</span></span>: <span class="json"><span class="str">"docs/systems/save-load.md"</span></span>,
+  <span class="json"><span class="key">"reason"</span></span>: <span class="json"><span class="str">"embedding"</span></span>,
+  <span class="json"><span class="key">"score"</span></span>: <span class="h">0.9163</span>
+}
+<span class="note">← second again, ahead of SaveGame.cpp and .h</span></div>
+      <div>
+        <p class="lede" style="font-size:19px">Seeded on the changed header <b>or</b> on the new
+        decision record, the impact graph puts <code>save-load.md</code> near the top of what this
+        change touches.</p>
+        <div class="callbox" style="margin-top:16px">
+          <b>Two signals, two jobs.</b><br>
+          <code>summary_hash</code> → “this file moved under its summary.”<br>
+          <code>graph_affected</code> → “this file should probably move too.”
+        </div>
+        <p class="sub" style="margin-top:16px; font-size:16px">Together they give a doc-consuming agent
+        a policy it can actually follow: trust <code>current</code>, distrust <code>stale</code>,
+        and cross-check anything the graph flags after a decision lands.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="doc-obsolescence">
+  <div class="kicker">3 · what changed</div>
+  <h2>docs/systems/save-load.md — after</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div style="flex:0 0 30%">
+        <div class="dotfile" style="opacity:.5; font-size:12.5px"><span class="fname">before</span><span class="k">summary:</span> <span class="v">'… states the current</span>
+  <span class="v">format as version 4 (Vael</span>
+  <span class="v">Spire discovery flags) with</span>
+  <span class="v">version 3 as the minimum</span>
+  <span class="v">supported …'</span>
+<span class="k">summary_hash:</span> <span class="v">f857b2b5…</span></div>
+        <p class="sub" style="font-size:14.5px; margin-top:12px">The doc was rewritten to be true,
+        then its summary and hash were re-verified against it.</p>
+      </div>
+      <div class="dotfile" style="flex:0 0 42%; font-size:13px"><span class="fname">after &nbsp;·&nbsp; as of fd17d9a</span><span class="ci-line"><span class="k">summary:</span> <span class="v">'… correctly states the</span></span>
+<span class="ci-line">  <span class="v">current format as <b>version 5</b> (chunked</span></span>
+<span class="ci-line">  <span class="v">world-flags block,</span></span>
+<span class="ci-line">  <span class="v"><b>kWorldFlagsChunkBits=256</b> bits/chunk,</span></span>
+<span class="ci-line">  <span class="v">replacing the v4 single-shot blob)</span></span>
+<span class="ci-line">  <span class="v">with <b>version 4</b> as the minimum</span></span>
+<span class="ci-line">  <span class="v">supported via</span></span>
+<span class="ci-line">  <span class="v">SaveGame::upgradeFromV4() …'</span></span>
+<span class="ci-line"><span class="k">summary_hash:</span> <span class="v">395301d3604022ac…</span>  <span class="ci-tag">← re-verified</span></span></div>
+      <div>
+        <p class="lede" style="font-size:18px">Every stale dot in the blast radius was
+        regenerated in the same commit, and <code>summaryStatus</code> reads
+        <code>current</code> across the board again.</p>
+        <div class="callbox" style="margin-top:14px">
+          Crucially, <b>“current” now means something</b>. Before the repair it was a
+          badge two of the three files hadn't earned.
+        </div>
+        <p class="sub" style="margin-top:14px; font-size:16px">The doc's own hash changed too —
+        because this time the doc really was edited.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="selective-regeneration">
+  <div class="body">
+    <div class="kicker">use case · 5 of 7</div>
+    <h1>Selective Regeneration</h1>
+    <div style="margin-top:22px">
+<p class="lede" style="font-size:19px">Last spring's docgen pass over <code>docs/systems/*.md</code> ran on
+    <code>quill-mini-2</code> because it was cheap. Three docs got manually flagged as too
+    vague or wrong and re-run on <code>quill-pro-1</code>; the other ten shipped as-is.</p>
+    <p class="lede" style="font-size:19px; margin-top:14px">Which three? Nobody wrote it down — it lives in
+    old PR threads and people's memory. Now <code>quill-pro-1</code> has gotten cheaper and
+    better, and someone wants to "just regenerate the docs."</p>
+    <p class="lede punch" style="margin-top:18px">Re-running all 13 through the new model costs
+    real money and throws away the diffs on the docs that already got the good model.</p>
+    </div>
+
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      repo: dotworld-demo · branch: <span style="color:var(--teal)">demo/selective-regeneration</span> · baseline: master @ 4d24e97
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="selective-regeneration">
+  <div class="kicker">1 · the initial state</div>
+  <h2>docs/systems/audio.md — before generation was ever logged</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="font-size:15.5px"><span class="fname">.dotworld/dots/docs/systems/audio.md.dot.md &nbsp;·&nbsp; minted blank, before any docgen provenance</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">docs/systems/audio.md</span>
+<span class="k">title:</span> <span class="v">'Engine Module: Audio'</span>
+<span class="k">kind:</span> <span class="v">prose</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread - summarize this file --&gt;</span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede">One of 13 engine-module docs produced by an internal docgen pipeline.
+        The dot only knows the ordinary file facts — <code>id</code>, <code>title</code>,
+        <code>kind</code>.</p>
+        <p class="lede" style="margin-top:18px">It doesn't yet know <b>which model wrote it</b>,
+        <b>what prompt version</b>, <b>what it cost</b>, or <b>how confident that model was</b>
+        when it generated the prose. That's the gap this demo fills.</p>
+        <div class="callbox"><b>Remember this file.</b> It ends the deck at confidence 0.90,
+        rewritten by a better model — and we'll trace the exact query that decided it needed the rewrite.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="selective-regeneration">
+  <div class="kicker">2 · what we ran · commit 8a31b56</div>
+  <h2>Register provenance properties, then backfill last spring's run</h2>
+  <p class="sub">dotworld refuses <code>property_set</code> on a key nobody registered, so the
+  four generation-provenance fields have to exist in the schema before 13 files can be backfilled.</p>
+  <div class="body">
+    <div class="cols tight">
+      <div>
+        <div class="term" style="font-size:14px; line-height:1.65"><span class="prompt">$</span> dot property_register <span class="h">name=genModel</span> merge=last-writer \
+    description="Which generation model produced this artifact
+    (e.g. quill-mini-2, quill-pro-1). Set by the docgen pipeline."
+
+<span class="prompt">$</span> dot property_register <span class="h">name=confidence</span> merge=last-writer \
+    description="Self-reported confidence (0-1) the generation
+    model logged at generation time. Low values are candidates
+    for regeneration."
+
+<span class="prompt">$</span> dot property_set file=docs/systems/audio.md \
+    key=<span class="h">genModel</span> value='"quill-mini-2"' --user regen-planner
+<span class="prompt">$</span> dot property_set file=docs/systems/audio.md \
+    key=<span class="h">confidence</span> value=0.58 --user regen-planner</div>
+        <div class="callbox" style="margin-top:14px">
+          Same pattern for <code>promptVersion</code> and <code>costUsd</code>. All four are
+          <code>merge=last-writer</code> — each is a single fact about the <b>latest</b>
+          generation, not something two branches should ever need to combine.
+        </div>
+      </div>
+      <div class="dotfile json"><span class="fname">.dotworld/properties.json &nbsp;·&nbsp; this demo's 4 properties</span><span class="punc">{</span>
+  <span class="key">"confidence"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Self-reported confidence (0-1) the</span>
+      <span class="str">generation model logged for this artifact</span>
+      <span class="str">at generation time. Low values are</span>
+      <span class="str">candidates for regeneration."</span>
+  <span class="punc">},</span>
+  <span class="key">"costUsd"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"USD cost of the generation API call</span>
+      <span class="str">that produced this artifact."</span>
+  <span class="punc">},</span>
+  <span class="key">"genModel"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Which model produced this artifact</span>
+      <span class="str">(quill-mini-2, quill-pro-1). Set by the</span>
+      <span class="str">docgen pipeline, not hand-edited."</span>
+  <span class="punc">},</span>
+  <span class="key">"promptVersion"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"last-writer"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Prompt template version used to</span>
+      <span class="str">produce this artifact (docgen-v2, v3)."</span>
+  <span class="punc">}</span>
+<span class="punc">}</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="selective-regeneration">
+  <div class="kicker">3 · what changed</div>
+  <h2>docs/systems/audio.md — after quill-pro-1</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div style="flex:0 0 28%">
+        <div class="dotfile" style="opacity:.5; font-size:13px"><span class="fname">day one — where we started</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">docs/systems/audio.md</span>
+<span class="k">title:</span> <span class="v">'Engine Module: Audio'</span>
+<span class="k">kind:</span> <span class="v">prose</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread --&gt;</span>
+<span class="cm">---</span></div>
+        <p class="sub" style="font-size:14px; margin-top:14px">Those five lines are still there,
+        character for character. Nothing was replaced.</p>
+      </div>
+      <div class="dotfile" style="flex:0 0 40%; font-size:14px"><span class="fname">as of f92eac1</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">docs/systems/audio.md</span>
+<span class="k">title:</span> <span class="v">'Engine Module: Audio'</span>
+<span class="k">kind:</span> <span class="v">prose</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread --&gt;</span>
+<span class="ci-line"><span class="k">genModel:</span> <span class="v">quill-pro-1</span>    <span class="ci-tag">← docgen</span></span>
+<span class="ci-line"><span class="k">promptVersion:</span> <span class="v">docgen-v3</span> <span class="ci-tag">← docgen</span></span>
+<span class="ci-line"><span class="k">costUsd:</span> <span class="v">0.058</span>        <span class="ci-tag">← docgen</span></span>
+<span class="ci-line"><span class="k">confidence:</span> <span class="v">0.9</span>       <span class="ci-tag">← docgen</span></span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede" style="font-size:18px">Four new lines. One query stops flagging this file:</p>
+        <p class="lede" style="margin-top:12px; font-size:17px"><code>regen-plan.sh</code> filters on
+        <code>genModel == "quill-mini-2" OR confidence &lt; 0.8</code> → <b>audio.md no longer matches.</b>
+        genModel is now <code>quill-pro-1</code>, confidence is 0.90.</p>
+        <p class="lede" style="margin-top:10px; font-size:17px">A PR reviewer sees the metadata diff
+        next to the prose diff, <b>same commit</b> — "confidence 0.58 → 0.90" is a property change
+        with the same audit trail as the code, not a claim in a commit message.</p>
+        <p class="lede" style="margin-top:10px; font-size:17px">Next time a model ships, the same
+        query decides again — <b>without anyone remembering</b> which docs got the good model.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="cross-repo-impact">
+  <div class="body">
+    <div class="kicker">use case · 6 of 7</div>
+    <h1>Cross-Repo Impact</h1>
+    <div style="margin-top:22px">
+<p class="lede" style="font-size:19px">Emberfall (the engine) and Emberfall Forge (a level editor built on top of it)
+    are not a monorepo. Forge is a <span class="dim">standalone fork</span> that vendors copies of
+    the engine's public interfaces — <code>src/core</code>, <code>src/gameplay/save</code>,
+    <code>src/input</code> — into its own tree, with its own git history.</p>
+    <p class="lede" style="font-size:19px; margin-top:14px">Change something in the engine and <code>grep -r</code>
+    inside the engine repo finds every in-repo caller. It cannot see Forge's copy —
+    that's a different clone, on a different machine, in a different <code>.git</code>.
+    Six dotworld sources are registered on this machine (<code>dot source_list</code>); a local
+    search reaches exactly one of them.</p>
+    <p class="lede punch" style="margin-top:18px">You can't grep a repo you haven't cloned.</p>
+    </div>
+
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      repo: dotworld-demo + dotworld-demo-client · branch: <span style="color:var(--teal)">demo/cross-repo-impact</span> · baseline: master @ 4d24e97
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="cross-repo-impact">
+  <div class="kicker">1 · the initial state</div>
+  <h2>src/editor/EditorApp.cpp — in the Forge repo, before</h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="font-size:15.5px"><span class="fname">.dotworld/dots/src/editor/EditorApp.cpp.dot.md &nbsp;·&nbsp; emberfall-forge's own git history</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/editor/EditorApp.cpp</span>
+<span class="k">source_id:</span> <span class="v">emberfall-forge</span>
+<span class="k">title:</span> <span class="v">EditorApp</span>
+<span class="k">tags:</span> <span class="v">[]</span>
+<span class="k">source_path:</span> <span class="v">$DOTWORLD_ROOT/src/editor/EditorApp.cpp</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread - summarize this file --&gt;</span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede">This is the Forge editor's save call site: <code>saveLevel()</code>
+        does <code>const bool ok = m_saveGame.save(levelPath, m_entities);</code> — a direct call
+        into a <b>vendored copy</b> of the engine's <code>SaveGame</code> class.</p>
+        <p class="lede" style="margin-top:18px">Its dot doesn't even have a <code>summary</code> yet.
+        It has no idea it depends on anything — and nobody watching the engine repo has any reason
+        to think about this file at all.</p>
+        <div class="callbox"><b>Remember this call site.</b> It lives in a repo the engine team has never
+        opened, and it's about to stop compiling under a change made three commits from now — in the
+        <i>other</i> repo.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="cross-repo-impact">
+  <div class="kicker">2 · what we ran · commit be1dd04 (emberfall-forge)</div>
+  <h2>Declaring a dependency writes a real file — in the dependent's repo</h2>
+  <p class="sub">The property isn't registered where the engine lives. It's registered where the
+  <i>knowledge</i> of the dependency lives — in Forge, by whoever vendored the code.</p>
+  <div class="body">
+    <div class="cols tight">
+      <div>
+        <div class="term"><span class="prompt">$</span> dot property_register <span class="h">sourceId=emberfall-forge</span> \
+    <span class="h">name=dependsOn merge=union</span> \
+    description="Files in the engine (emberfall) source this
+    file's correctness depends on… values are strings of the
+    form \"emberfall:&lt;path&gt;\"."
+<span class="note">{ "ok": true, "result": { "name": "dependsOn", … } }</span>
+
+<span class="prompt">$</span> dot property_set sourceId=emberfall-forge \
+    file=src/editor/EditorApp.cpp key=<span class="h">dependsOn</span> \
+    value='["emberfall:src/gameplay/save/SaveVersion.h",
+            "emberfall:src/gameplay/save/SaveGame.h",
+            "emberfall:src/core/EntityManager.h"]'
+<span class="note">{ "ok": true }</span></div>
+        <div class="callbox" style="margin-top:16px">
+          Nothing in the <b>engine</b> repo changed. The edge lives entirely on the
+          <b>dependent's</b> side — which is the only side that actually knows it exists.
+        </div>
+      </div>
+      <div class="dotfile json" style="font-size:12px"><span class="fname">.dotworld/properties.json (emberfall-forge) &nbsp;·&nbsp; committed, reviewable, diffable</span><span class="punc">{</span>
+  <span class="key">"dependsOn"</span><span class="punc">: {</span>
+    <span class="key">"merge"</span><span class="punc">:</span> <span class="str">"union"</span><span class="punc">,</span>
+    <span class="key">"description"</span><span class="punc">:</span> <span class="str">"Files in the engine (emberfall) source</span>
+      <span class="str">this file's correctness depends on… Values are</span>
+      <span class="str">strings of the form \"emberfall:&lt;path&gt;\". Union-</span>
+      <span class="str">merged so parallel editors/agents accumulate</span>
+      <span class="str">dependency edges without clobbering each other."</span>
+  <span class="punc">},</span>
+  <span class="cm">// reviewStatus, reviewedBy, riskLevel — already</span>
+  <span class="cm">// registered by an earlier review pass</span>
+<span class="punc">}</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="cross-repo-impact">
+  <div class="kicker">3 · what changed</div>
+  <h2>src/editor/EditorApp.cpp — now it knows</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div style="flex:0 0 28%">
+        <div class="dotfile" style="opacity:.5; font-size:13px"><span class="fname">a46d0c6 — where we started</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/editor/EditorApp.cpp</span>
+<span class="k">source_id:</span> <span class="v">emberfall-forge</span>
+<span class="k">title:</span> <span class="v">EditorApp</span>
+<span class="k">tags:</span> <span class="v">[]</span>
+<span class="k">source_path:</span> <span class="v">$DOTWORLD_ROOT/…</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread --&gt;</span>
+<span class="cm">---</span></div>
+        <p class="sub" style="font-size:14px; margin-top:12px">Those seven lines are still there,
+        character for character. Nothing was replaced.</p>
+      </div>
+      <div class="dotfile" style="flex:0 0 40%; font-size:13px"><span class="fname">be1dd04 &nbsp;·&nbsp; one commit later</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/editor/EditorApp.cpp</span>
+<span class="k">source_id:</span> <span class="v">emberfall-forge</span>
+<span class="k">title:</span> <span class="v">EditorApp</span>
+<span class="k">tags:</span> <span class="v">[]</span>
+<span class="k">source_path:</span> <span class="v">$DOTWORLD_ROOT/…</span>
+<span class="k">kind:</span> <span class="v">code</span>
+<span class="k">summary:</span> <span class="cm">&lt;!-- unread --&gt;</span>
+<span class="ci-line"><span class="k">dependsOn:</span>  <span class="ci-tag">← be1dd04</span></span>
+<span class="ci-line"><span class="v">  - emberfall:src/gameplay/save/SaveVersion.h</span>  <span class="ci-tag">← be1dd04</span></span>
+<span class="ci-line"><span class="v">  - emberfall:src/gameplay/save/SaveGame.h</span>  <span class="ci-tag">← be1dd04</span></span>
+<span class="ci-line"><span class="v">  - emberfall:src/core/EntityManager.h</span>  <span class="ci-tag">← be1dd04</span></span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede" style="font-size:19px">Four new lines. One cross-repo tool now reads them and just works:</p>
+        <p class="lede" style="margin-top:14px; font-size:18px"><code>tools/impact-scan.sh</code> queries
+        <code>dependsOn</code> across every registered downstream source →
+        <b>finds this exact file</b> when <code>SaveGame.h</code> changes, from inside the engine repo,
+        without ever cloning Forge locally.</p>
+        <p class="lede" style="margin-top:12px; font-size:18px">The engine team still doesn't know Forge
+        exists as code. They only need to know it exists as a <b>registered source</b>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="onboarding">
+  <div class="body">
+    <div class="kicker">use case · 7 of 7</div>
+    <h1>Onboarding</h1>
+    <div style="margin-top:22px">
+<p class="lede" style="font-size:19px">Day one on Emberfall: access to two repos, <span class="dim">emberfall</span>
+    (the engine) and <span class="dim">emberfall-forge</span> (the level editor, forked from it).
+    165 tracked files each side. Real questions on day one: <em>where does saving happen, can I
+    trust it, how do input bindings work, what's the riskiest code to read first?</em></p>
+    <p class="lede" style="font-size:19px; margin-top:14px">grep and an IDE will find you the <em>code</em>. Neither
+    tells you which of it survived review, who owns it, or whether a function that returns
+    <code>true</code> actually means success.</p>
+    <p class="lede punch" style="margin-top:18px">You can grep for <code>save()</code>. You can't grep for "don't trust this."</p>
+    </div>
+
+    <p class="sub" style="margin-top:28px; font-family:var(--mono); font-size:15px">
+      repo: dotworld-demo + dotworld-demo-client · branch: <span style="color:var(--teal)">demo/onboarding</span> · baseline: master @ 4d24e97
+    </p>
+  </div>
+</section>
+
+<section class="slide" data-demo="onboarding">
+  <div class="kicker">1 · the initial state</div>
+  <h2>src/gameplay/save/SaveGame.cpp — five seconds after <code>dot_get</code></h2>
+  <div class="body">
+    <div class="cols">
+      <div class="dotfile" style="font-size:15.5px"><span class="fname">.dotworld/dots/src/gameplay/save/SaveGame.cpp.dot.md &nbsp;·&nbsp; read by the newcomer's agent, source never opened</span><span class="cm">---</span>
+<span class="k">id:</span> <span class="v">src/gameplay/save/SaveGame.cpp</span>
+<span class="k">title:</span> <span class="v">SaveGame — implementation (save/load, block writers)</span>
+<span class="k">summary:</span> <span class="v">'save() calls writeInventoryBlock() and</span>
+  <span class="v">writeWorldFlagsBlock(), both stubs that write no bytes</span>
+  <span class="v">and unconditionally return true... Net effect: save()</span>
+  <span class="v">currently reports success unconditionally despite</span>
+  <span class="v">persisting nothing.'</span>
+<span class="k">reviewStatus:</span> <span class="v">changes-requested</span>
+<span class="k">riskLevel:</span> <span class="v">high</span>
+<span class="k">reviewedBy:</span>
+  <span class="v">- save-reviewer</span>
+<span class="cm">---</span></div>
+      <div>
+        <p class="lede">Both repos' <code>search_semantic query='save and load game state'</code> rank
+        this file first — score <b>0.824</b> in emberfall. Its dot is the one thing the agent reads
+        before deciding whether to read anything else.</p>
+        <p class="lede" style="margin-top:18px">Everything above — <code>riskLevel</code>,
+        <code>reviewStatus</code>, <code>reviewedBy</code> — was written by <b>someone else, on a
+        different day, for a different demo.</b> The newcomer's agent didn't write any of it. It just read it.</p>
+        <div class="callbox"><b>Remember these fields.</b> The rest of this demo is a newcomer's agent reading them instead of the file.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="onboarding">
+  <div class="kicker">2 · what we ran</div>
+  <h2>Three questions, asked and answered, across two repos</h2>
+  <div class="body">
+    <div class="steps">
+      <div class="stepcard reg">
+        <div class="when"><b>T+0s</b> · topology</div>
+        <span class="chip"><span class="k">source_list:</span> 2 sources</span>
+        <span class="chip dim">emberfall, emberfall-forge</span>
+        <div class="sha">master @ 4d24e97</div>
+      </div>
+      <div class="stepcard">
+        <div class="when"><b>Q1</b> · search_semantic</div>
+        <span class="chip"><span class="k">top hit:</span> SaveGame.cpp</span>
+        <span class="chip"><span class="k">score:</span> 0.824</span>
+        <div class="sha">f0c8154</div>
+      </div>
+      <div class="stepcard quar">
+        <div class="when"><b>Q1</b> · dot_get answer</div>
+        <span class="chip alarm"><span class="k">riskLevel:</span> high</span>
+        <span class="chip"><span class="k">reviewStatus:</span> changes-requested</span>
+        <div class="sha">f0c8154</div>
+      </div>
+      <div class="stepcard">
+        <div class="when"><b>Q2</b> · dot_get, forge repo</div>
+        <span class="chip"><span class="k">dependsOn:</span> emberfall:…cfg</span>
+        <span class="chip"><span class="k">riskLevel:</span> medium</span>
+        <div class="sha">be1dd04</div>
+      </div>
+      <div class="stepcard">
+        <div class="when"><b>Q3</b> · search_properties</div>
+        <span class="chip"><span class="k">riskLevel=high:</span> 4 files</span>
+        <span class="chip dim">of 165 tracked</span>
+        <div class="sha">4d24e97</div>
+      </div>
+      <div class="stepcard">
+        <div class="when"><b>T+60s</b> · cost paid</div>
+        <span class="chip"><span class="k">summaries read:</span> ~15–20 KB</span>
+        <span class="chip"><span class="k">full files opened:</span> 0</span>
+        <div class="sha">0035266</div>
+      </div>
+    </div>
+    <p class="annot">Every card is <span class="mark">a real command against real dot metadata</span> — no
+    step opens <code>src/gameplay/save/SaveGame.cpp</code>'s body. The middle two cards are the whole
+    answer to "can I trust <code>save()</code>": a human review verdict, read structurally, not
+    inferred from skimming C++. Total cost for all three questions: roughly 15–20 KB of summaries and
+    property JSON, against ~120 KB of source across the repo's tracked files.</p>
+  </div>
+</section>
+
+<section class="slide" data-demo="onboarding">
+  <div class="kicker">3 · what changed</div>
+  <h2>What five seconds bought, versus the slow way</h2>
+  <div class="body">
+    <div class="cols tight">
+      <div style="flex:0 0 26%">
+        <div class="dotfile" style="opacity:.5; font-size:12.5px"><span class="fname">what the agent had — 5s in</span><span class="cm">---</span>
+<span class="k">riskLevel:</span> <span class="v">high</span>
+<span class="k">reviewStatus:</span> <span class="v">changes-requested</span>
+<span class="k">reviewedBy:</span> <span class="v">[save-reviewer]</span>
+<span class="cm">---</span></div>
+        <p class="sub" style="font-size:14px; margin-top:14px">Read once, from the dot. No source opened.</p>
+      </div>
+      <div class="term" style="flex:0 0 38%; font-size:14px"><span class="fname" style="display:block;color:var(--dim);font-size:11.5px;margin-bottom:8px">the slow way — no dotworld</span><span class="prompt">$</span> read SaveGame.cpp + SaveGame.h in full
+<span class="note">← 8.8 KB of C++, start to finish</span>
+still doesn't tell you save() lies —
+<span class="note">← stubs "unconditionally return true"; you'd have</span>
+<span class="note">  to trace 3 call sites yourself to notice</span>
+<span class="prompt">$</span> ask #emberfall-eng: "does save() actually work?"
+<span class="note">← wait for save-reviewer or a teammate to reply</span></div>
+      <div>
+        <p class="lede" style="font-size:18px">Five seconds bought the newcomer's agent the answer a
+        human would reach only after reading the file <em>and</em> knowing to ask the right person.</p>
+        <p class="lede" style="margin-top:14px; font-size:17px"><code>riskLevel</code>/<code>reviewStatus</code>
+        state the verdict directly — no call-graph tracing.</p>
+        <p class="lede" style="margin-top:10px; font-size:17px">The forge repo's <code>dependsOn</code>
+        told it the editor's copy inherits the same risk — a fact neither repo's code states on its own.</p>
+        <p class="lede" style="margin-top:10px; font-size:17px"><code>search_properties</code> told it
+        3 more files carry the same flag, before it had to ask.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-demo="architecture-reference">
+  <div class="kicker">appendix · the whole system</div>
+  <h2>Three faces, one auth waist, a kernel with no LLM and no database</h2>
+  <p class="sub arch-header-note" style="margin-top:6px">
+    Where this disagrees with the code, <code>docs/architecture.md</code> and the code win.
+  </p>
+  <div class="arch-scroll">
+  <div class="arch-wrap">
+<svg class="archdiagram" viewBox="0 0 1640 1200" role="img" aria-label="dotworld architecture diagram">
+  <!-- ================= CALLERS ================= -->
+  <text class="lbl" x="60" y="18">CALLERS</text>
+  <rect class="box" x="60"  y="26" width="230" height="60" rx="8"/>
+  <text class="btitle" x="175" y="52" text-anchor="middle">agent</text>
+  <text class="bsub"   x="175" y="70" text-anchor="middle">an MCP client</text>
+
+  <rect class="box" x="310" y="26" width="230" height="60" rx="8"/>
+  <text class="btitle" x="425" y="52" text-anchor="middle">human</text>
+  <text class="bsub"   x="425" y="70" text-anchor="middle">a terminal</text>
+
+  <rect class="box" x="560" y="26" width="230" height="60" rx="8"/>
+  <text class="btitle" x="675" y="52" text-anchor="middle">service</text>
+  <text class="bsub"   x="675" y="70" text-anchor="middle">an HTTP client</text>
+
+  <!-- satellite: the layer that is designed but not built -->
+  <text class="lbl" x="1230" y="18">SATELLITE LAYER</text>
+  <rect class="ghost" x="1230" y="26" width="350" height="60" rx="8"/>
+  <text class="btitle" x="1405" y="50" text-anchor="middle" fill="#8b94a5">satellite</text>
+  <text class="bsub"   x="1405" y="69" text-anchor="middle">remote · API-only · none built</text>
+
+  <!-- ================= FACES ================= -->
+  <text class="lbl" x="60" y="110">FACES — the same commands, generated from one registry</text>
+  <rect class="box" x="60"  y="118" width="230" height="72" rx="8"/>
+  <text class="btitle" x="175" y="144" text-anchor="middle">MCP</text>
+  <text class="item"   x="175" y="163" text-anchor="middle">mcp-server.ts</text>
+  <text class="bsub"   x="175" y="180" text-anchor="middle">tool catalog is generated</text>
+
+  <rect class="box" x="310" y="118" width="230" height="72" rx="8"/>
+  <text class="btitle" x="425" y="144" text-anchor="middle">CLI</text>
+  <text class="item"   x="425" y="163" text-anchor="middle">cli.ts</text>
+  <text class="bsub"   x="425" y="180" text-anchor="middle">only face with a cwd</text>
+
+  <rect class="box" x="560" y="118" width="230" height="72" rx="8"/>
+  <text class="btitle" x="675" y="144" text-anchor="middle">HTTP</text>
+  <text class="item"   x="675" y="163" text-anchor="middle">http.ts</text>
+  <text class="bsub"   x="675" y="180" text-anchor="middle">no cwd — never infers</text>
+
+  <line class="flow" x1="175" y1="86" x2="175" y2="114" marker-end="url(#arr)"/>
+  <line class="flow" x1="425" y1="86" x2="425" y2="114" marker-end="url(#arr)"/>
+  <line class="flow" x1="675" y1="86" x2="675" y2="114" marker-end="url(#arr)"/>
+
+  <!-- ================= AUTH WAIST ================= -->
+  <rect class="waist" x="60" y="222" width="1120" height="62" rx="9"/>
+  <text class="btitle" x="84" y="248" fill="#f5a524">AUTH WAIST</text>
+  <text class="bsub"   x="84" y="268">auth/auth.ts — every command carries an identity</text>
+  <text class="archchip"   x="470" y="255">mode:</text>
+  <rect class="chipr" x="520" y="240" width="76"  height="24" rx="6"/>
+  <text class="archchip"  x="558" y="256" text-anchor="middle">none</text>
+  <rect class="chipr" x="606" y="240" width="150" height="24" rx="6"/>
+  <text class="archchip"  x="681" y="256" text-anchor="middle">managed bearer</text>
+  <rect class="chipr" x="766" y="240" width="140" height="24" rx="6"/>
+  <text class="archchip"  x="836" y="256" text-anchor="middle">proxy header</text>
+  <text class="note"  x="930" y="256">every remote caller crosses here</text>
+
+  <line class="flow" x1="175" y1="190" x2="175" y2="218" marker-end="url(#arr)"/>
+  <line class="flow" x1="425" y1="190" x2="425" y2="218" marker-end="url(#arr)"/>
+  <line class="flow" x1="675" y1="190" x2="675" y2="218" marker-end="url(#arr)"/>
+
+  <!-- satellites must cross the waist; plugins do not -->
+  <path class="flowd" d="M1405,86 V253 H1192" marker-end="url(#arr)"/>
+
+  <line class="flow" x1="620" y1="284" x2="620" y2="312" marker-end="url(#arr)"/>
+
+  <!-- ================= KERNEL ================= -->
+  <rect class="kern" x="60" y="316" width="1120" height="444" rx="10"/>
+  <text class="lbl" x="84" y="340" fill="#3ecfb2">KERNEL — always on · deterministic · no LLM · no database · no caches</text>
+
+  <!-- command registry -->
+  <rect class="box2" x="84" y="352" width="1072" height="46" rx="7"/>
+  <text class="btitle" x="100" y="381">COMMAND REGISTRY</text>
+  <text class="item"   x="252" y="381">app.ts</text>
+  <text class="note"   x="316" y="381">— one set, three faces; `dot --help` is generated from it and cannot drift</text>
+
+  <!-- command categories: first token is always the category -->
+  <rect class="chipr" x="84"   y="412" width="100" height="26" rx="6"/><text class="archchip" x="134"  y="429" text-anchor="middle">file</text>
+  <rect class="chipr" x="192"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="242"  y="429" text-anchor="middle">dot</text>
+  <rect class="chipr" x="300"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="350"  y="429" text-anchor="middle">property</text>
+  <rect class="chipr" x="408"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="458"  y="429" text-anchor="middle">index</text>
+  <rect class="chipr" x="516"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="566"  y="429" text-anchor="middle">search</text>
+  <rect class="chipr" x="624"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="674"  y="429" text-anchor="middle">graph</text>
+  <rect class="chipr" x="732"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="782"  y="429" text-anchor="middle">source</text>
+  <rect class="chipr" x="840"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="890"  y="429" text-anchor="middle">workspace</text>
+  <rect class="chipr" x="948"  y="412" width="100" height="26" rx="6"/><text class="archchip" x="998"  y="429" text-anchor="middle">sync</text>
+  <rect class="chipr" x="1056" y="412" width="100" height="26" rx="6"/><text class="archchip" x="1106" y="429" text-anchor="middle">plugin</text>
+
+  <!-- module columns -->
+  <rect class="box2" x="84" y="458" width="253" height="286" rx="7"/>
+  <text class="btitle" x="100" y="482">source/ · properties/</text>
+  <text class="item"  x="100" y="508">registry.ts</text>
+  <text class="itemd" x="100" y="526">  the registered sources</text>
+  <text class="item"  x="100" y="550">infer.ts</text>
+  <text class="itemd" x="100" y="568">  cwd → sourceId</text>
+  <text class="itemd" x="100" y="586">  CLI only — never MCP/HTTP</text>
+  <text class="item"  x="100" y="610">properties/registry.ts</text>
+  <text class="itemd" x="100" y="628">  built-ins + the source's</text>
+  <text class="itemd" x="100" y="646">  own vocabulary</text>
+  <text class="itemd" x="100" y="670">  merge strategy per key:</text>
+  <text class="itemd" x="100" y="688">  last-writer · union</text>
+  <text class="itemd" x="100" y="706">  line-union · counter</text>
+  <text class="note"  x="100" y="730">unregistered key → refused</text>
+
+  <rect class="box2" x="357" y="458" width="253" height="286" rx="7"/>
+  <text class="btitle" x="373" y="482">index/</text>
+  <text class="bsub"   x="373" y="500">disposable — rebuilt from files</text>
+  <text class="item"  x="373" y="526">scan.ts · store.ts</text>
+  <text class="item"  x="373" y="550">embedding.ts + engines/</text>
+  <text class="itemd" x="373" y="568">  semantic search</text>
+  <text class="item"  x="373" y="592">links.ts · connector-file.ts</text>
+  <text class="item"  x="373" y="616">graph-store.ts</text>
+  <text class="item"  x="373" y="640">importance.ts</text>
+  <text class="itemd" x="373" y="658">  PageRank → centrality</text>
+  <text class="item"  x="373" y="682">rename.ts</text>
+  <text class="itemd" x="373" y="700">  the one read that stages,</text>
+  <text class="itemd" x="373" y="718">  into a throwaway $TMPDIR</text>
+  <text class="note"  x="373" y="738">lag degrades ranking, never truth</text>
+
+  <rect class="box2" x="630" y="458" width="253" height="286" rx="7"/>
+  <text class="btitle" x="646" y="482">git/</text>
+  <text class="bsub"   x="646" y="500">git is the sync substrate</text>
+  <text class="item"  x="646" y="526">working-tree.ts</text>
+  <text class="item"  x="646" y="550">worktrees.ts</text>
+  <text class="itemd" x="646" y="568">  a workspace IS a worktree</text>
+  <text class="item"  x="646" y="592">merge-dot.ts</text>
+  <text class="itemd" x="646" y="610">  3-way, per property</text>
+  <text class="item"  x="646" y="634">merge-driver.ts</text>
+  <text class="itemd" x="646" y="652">  git spawns this</text>
+  <text class="item"  x="646" y="676">dotworld-filter.ts</text>
+  <text class="item"  x="646" y="700">pre-push-hook.ts</text>
+  <text class="item"  x="646" y="718">publish-policy.ts</text>
+  <text class="note"  x="646" y="738">what it cannot settle, git reports</text>
+
+  <rect class="box2" x="903" y="458" width="253" height="286" rx="7"/>
+  <text class="btitle" x="919" y="482">core</text>
+  <text class="item"  x="919" y="508">kernel.ts</text>
+  <text class="itemd" x="919" y="526">  the primitives every</text>
+  <text class="itemd" x="919" y="544">  consumer composes</text>
+  <text class="item"  x="919" y="568">doctor.ts</text>
+  <text class="itemd" x="919" y="586">  sync_doctor — is this</text>
+  <text class="itemd" x="919" y="604">  install half-working?</text>
+  <text class="item"  x="919" y="628">errors.ts</text>
+  <text class="itemd" x="919" y="646">  BadParams, and friends</text>
+  <text class="item"  x="919" y="670">util/</text>
+  <text class="itemd" x="919" y="688">  hash · dot-io · paths</text>
+  <text class="itemd" x="919" y="706">  disposable · binary</text>
+  <text class="note"  x="919" y="738">prefer a general primitive</text>
+
+  <!-- ================= PLUGINS ================= -->
+  <rect class="plug" x="1230" y="316" width="350" height="444" rx="10"/>
+  <text class="lbl" x="1250" y="336" fill="#f5a524">PLUGIN LAYER</text>
+  <text class="bsub" x="1250" y="354">local · detachable · may hold a model and credentials</text>
+  <text class="cap"  x="1250" y="370">bypasses the waist — locality is the definition</text>
+
+  <rect class="box2" x="1250" y="374" width="310" height="82" rx="7"/>
+  <text class="btitle" x="1266" y="398">obsolescence</text>
+  <text class="item"   x="1266" y="420">obsolescence_review</text>
+  <text class="note"   x="1266" y="440">corrects the file; never a read-time overlay</text>
+
+  <rect class="box2" x="1250" y="464" width="310" height="82" rx="7"/>
+  <text class="btitle" x="1266" y="488">summarizer</text>
+  <text class="item"   x="1266" y="510">summary_refresh</text>
+  <text class="note"   x="1266" y="530">engines: rule-based · claude-code</text>
+
+  <rect class="box2" x="1250" y="554" width="310" height="82" rx="7"/>
+  <text class="btitle" x="1266" y="578">comms</text>
+  <text class="item"   x="1266" y="600">comms_send · comms_read</text>
+  <text class="note"   x="1266" y="620">the agent message board</text>
+
+  <rect class="box2" x="1250" y="644" width="310" height="82" rx="7"/>
+  <text class="btitle" x="1266" y="668">context-loader</text>
+  <text class="item"   x="1266" y="690">context_load</text>
+  <text class="note"   x="1266" y="710">mode=dot joins dots · mode=file joins bodies</text>
+
+  <text class="note" x="1250" y="748">detach one and its commands vanish from every face</text>
+
+  <!-- the defining asymmetry: local, so it does not cross the waist -->
+  <path class="flowd" d="M1226,500 H1190" marker-end="url(#arr)"/>
+
+  <!-- ================= STORAGE ================= -->
+  <line class="flow" x1="360"  y1="760" x2="360"  y2="790" marker-end="url(#arr)"/>
+  <line class="flow" x1="843"  y1="760" x2="843"  y2="790" marker-end="url(#arr)"/>
+  <line class="flow" x1="1120" y1="760" x2="1120" y2="790" marker-end="url(#arr)"/>
+  <line class="flow" x1="1453" y1="760" x2="1453" y2="790" marker-end="url(#arr)"/>
+  <text class="edge" x="1463" y="782">commits to its own branch</text>
+
+  <!-- the working tree: the only truth -->
+  <rect class="store" x="60" y="794" width="600" height="304" rx="10"/>
+  <text class="lbl" x="80" y="818" fill="#7aa2f7">THE WORKING TREE — durable, in git, the only truth</text>
+
+  <rect class="box2" x="80" y="830" width="560" height="60" rx="7"/>
+  <text class="btitle" x="96" y="854">the source file</text>
+  <text class="note"   x="96" y="876">raw bytes — no frontmatter, no marker; readable by someone who never heard of dotworld</text>
+
+  <rect class="box2" x="80" y="900" width="560" height="118" rx="7"/>
+  <text class="btitle" x="96" y="924">.dotworld/dots/&lt;path&gt;.dot.md</text>
+  <text class="note"   x="96" y="944">what dotworld knows about it — frontmatter, then an authorable body</text>
+  <text class="item"   x="96" y="968">id · source_id · source_path · title · tags</text>
+  <text class="itemd"  x="96" y="988">reserved identity — refused in the property bag</text>
+  <text class="item"   x="96" y="1008">then the bag, flat: kind · summary · summary_hash · …</text>
+
+  <rect class="box2" x="80" y="1028" width="560" height="56" rx="7"/>
+  <text class="btitle" x="96" y="1052">.dotworld/properties.json</text>
+  <text class="note"   x="96" y="1072">the source's vocabulary — what may be set, and how each key merges</text>
+
+  <!-- derived -->
+  <rect class="store" x="686" y="794" width="314" height="304" rx="10"/>
+  <text class="lbl" x="706" y="818" fill="#7aa2f7">.dotworld/derived/</text>
+  <text class="bsub"  x="706" y="838">disposable — rm -rf it freely</text>
+  <text class="item"  x="706" y="872">embeddings/</text>
+  <text class="item"  x="706" y="898">graph/</text>
+  <text class="item"  x="706" y="924">hashes/</text>
+  <text class="item"  x="706" y="950">orphans/</text>
+  <text class="item"  x="706" y="976">comms/</text>
+  <text class="note"  x="706" y="1014">every byte here is</text>
+  <text class="note"  x="706" y="1032">recomputed from the</text>
+  <text class="note"  x="706" y="1050">files beside it</text>
+  <text class="note"  x="706" y="1078">nothing here is a cache</text>
+
+  <path class="flowd" d="M660,930 H682" marker-end="url(#arr)"/>
+
+  <!-- machine state -->
+  <rect class="store" x="1026" y="794" width="274" height="304" rx="10"/>
+  <text class="lbl" x="1046" y="818" fill="#7aa2f7">MACHINE STATE</text>
+  <text class="bsub"  x="1046" y="838">outside every repo</text>
+  <text class="item"  x="1046" y="868">$XDG_CONFIG_HOME/</text>
+  <text class="item"  x="1046" y="886">  dotworld/config.json</text>
+  <text class="note"  x="1046" y="906">the source registry</text>
+  <text class="item"  x="1046" y="938">$XDG_CACHE_HOME/</text>
+  <text class="item"  x="1046" y="956">  dotworld/models/</text>
+  <text class="note"  x="1046" y="976">embedding weights</text>
+  <text class="item"  x="1046" y="1008">$XDG_STATE_HOME/</text>
+  <text class="item"  x="1046" y="1026">  dotworld/worktrees/</text>
+  <text class="note"  x="1046" y="1046">the workspaces — never</text>
+  <text class="note"  x="1046" y="1064">inside a source root</text>
+  <text class="note"  x="1046" y="1088">DOTWORLD_DATA overrides</text>
+
+  <!-- git -->
+  <rect class="store" x="1326" y="794" width="254" height="304" rx="10"/>
+  <text class="lbl" x="1346" y="818" fill="#7aa2f7">GIT</text>
+  <text class="bsub"  x="1346" y="838">the sync substrate</text>
+  <text class="item"  x="1346" y="872">merge driver</text>
+  <text class="itemd" x="1346" y="890">  per-property</text>
+  <text class="item"  x="1346" y="916">clean / smudge filter</text>
+  <text class="item"  x="1346" y="942">pre-push hook</text>
+  <text class="item"  x="1346" y="968">linked worktrees</text>
+  <text class="itemd" x="1346" y="986">  = workspaces</text>
+  <text class="note"  x="1346" y="1022">a branch IS the</text>
+  <text class="note"  x="1346" y="1040">proposal — review</text>
+  <text class="note"  x="1346" y="1058">has no second home</text>
+  <text class="note"  x="1346" y="1082">conflicts are git's</text>
+</svg>
+  </div>
+
+  <div class="arch-legend">
+    <span><i style="border-color:#3ecfb2"></i>kernel — the waist itself</span>
+    <span><i style="border-color:#f5a524"></i>plugin — local, detachable</span>
+    <span><i style="border-color:#7aa2f7"></i>storage</span>
+    <span><i style="border-color:#3a4759; border-top-style:dashed"></i>not built</span>
+    <span><i style="border-color:#55617a; border-top-style:dashed"></i>bypasses the waist</span>
+  </div>
+
+  <div class="arch-rules">
+    <div class="arch-rule"><b>Files are the only truth.</b> <span>No database. Every derived artifact is disposable.</span></div>
+    <div class="arch-rule"><b>No caches.</b> <span>Load, validate against the source, use, discard.</span></div>
+    <div class="arch-rule"><b>Metadata lives in the dot,</b> <span>never in the source file's frontmatter.</span></div>
+    <div class="arch-rule"><b>A read writes nothing</b> <span>to the caller's repository.</span></div>
+    <div class="arch-rule"><b>Conflicts are git's.</b> <span>Resolve in your own workspace, then submit.</span></div>
+  </div>
+  </div>
+</section>
+
+<div class="brand"><b>dot</b>world<span class="sep">·</span><span id="demoname">8 sections</span></div>
+<div class="hud">
+  <span id="counter">1 / 1</span>
+  <button onclick="nav(-1)">‹</button>
+  <button onclick="nav(1)">›</button>
+</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const DEMOS = [
+    ['repository',            'where it lives'],
+    ['overview-architecture', 'architecture'],
+    ['dots',                  'the dot'],
+    ['features',              'what the kernel gives you'],
+    ['plugins',               'plugins'],
+    ['interfaces',            'faces, waist, satellites'],
+    ['flaky-test-triage',      'use case 1 · flaky test triage'],
+    ['review-debt',            'use case 2 · review debt'],
+    ['context-budgeting',      'use case 3 · context budgeting'],
+    ['doc-obsolescence',       'use case 4 · document obsolescence'],
+    ['selective-regeneration', 'use case 5 · selective regeneration'],
+    ['cross-repo-impact',      'use case 6 · cross-repo impact'],
+    ['onboarding',             'use case 7 · onboarding'],
+    ['architecture-reference', 'appendix · full architecture'],
+  ];
+  const rail = document.getElementById('rail');
+  DEMOS.forEach(() => rail.appendChild(document.createElement('div')));
+
+  let i = 0;
+  function demoIndexOf(n) {
+    const slug = slides[n].dataset.demo;
+    return DEMOS.findIndex(d => d[0] === slug);
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, j) => s.classList.toggle('active', j === i));
+    const d = demoIndexOf(i);
+    const segs = [...rail.children];
+    segs.forEach((s, j) => {
+      s.className = d < 0 ? '' : (j === d ? 'here' : (j < d ? 'done' : ''));
+    });
+    if (d < 0) {
+      document.getElementById('demoname').textContent = `${DEMOS.length} sections`;
+      document.getElementById('counter').textContent = `${i + 1} / ${slides.length}`;
+    } else {
+      const mine = slides.filter(s => s.dataset.demo === DEMOS[d][0]);
+      document.getElementById('demoname').textContent = `${d + 1}. ${DEMOS[d][1]}`;
+      document.getElementById('counter').textContent =
+        `${mine.indexOf(slides[i]) + 1} / ${mine.length}  ·  deck ${i + 1}/${slides.length}`;
+    }
+  }
+  function nav(d) { show(i + d); }
+  function jumpDemo(n) {
+    const slug = DEMOS[n - 1] && DEMOS[n - 1][0];
+    const at = slides.findIndex(s => s.dataset.demo === slug);
+    if (at >= 0) show(at);
+  }
+  addEventListener('keydown', e => {
+    if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); nav(1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); nav(-1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === '0' || e.key === 'Escape') show(1);
+    else if (/^[1-9]$/.test(e.key)) jumpDemo(+e.key);
+  });
+  show(0);
+</script>
+</body>
+</html>
