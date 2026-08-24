@@ -1,9 +1,20 @@
 # dotworld (alpha releases)
 
-This repo holds nothing but install artifacts: `install.sh` and release tarballs, published as
-[GitHub Releases](https://github.com/DragonLord-64/dotworld-releases/releases). The source lives in
-a private repo — this one exists so the install command works without a login and so alpha testers
-have somewhere public to file bugs.
+Install artifacts (`install.sh`, release tarballs) published as
+[GitHub Releases](https://github.com/DragonLord-64/dotworld-releases/releases), plus the
+[user docs](docs/user-docs) and [presentation](docs/presentation) kept in sync with each release.
+The source lives in a private repo — this one exists so the install command works without a login,
+so the docs are readable without one either, and so alpha testers have somewhere public to file bugs.
+
+## Docs
+
+- [`docs/user-docs`](docs/user-docs) — getting started, concepts, indexing, search, plugins, and the
+  full generated command reference.
+- [`docs/presentation`](docs/presentation) — the slide deck (`dotworld-presentation.html`); open it
+  in a browser, no build step.
+
+Both are synced from the source repo on every release and also ship as `dotworld-docs-*.tar.gz` on
+the [release page](https://github.com/DragonLord-64/dotworld-releases/releases).
 
 ## Install
 
