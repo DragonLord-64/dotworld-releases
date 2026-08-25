@@ -21,12 +21,12 @@ $ dot source_register id=handbook root=.
 `root=.` is resolved against your working directory. If the directory is not a git repository yet,
 pass `initGit=true` and dotworld will make it one.
 
-**A repo dotworld has just met is local by default.** With `neverPushDotworld` omitted, the *first*
-registration of an id means `true`: a pre-push hook goes in, and a plain `git push` will never let
-`.dotworld/` reach a remote. You opt out explicitly:
+**A repo dotworld has just met is pushable by default.** With `neverPushDotworld` omitted, nothing
+changes about how `git push` behaves — `.dotworld/` pushes like any other tracked file. Opt in
+explicitly if you want it kept off a remote:
 
 ```console
-$ dot source_register id=handbook root=. neverPushDotworld=false
+$ dot source_register id=handbook root=. neverPushDotworld=true
 ```
 
 Check what you got — the result tells you whether the hook actually landed:
@@ -50,9 +50,8 @@ Four things worth knowing about the policy:
   `publish-policy.json` is only written if it landed. That file is committed and travels with the
   repo, while the hook is per-clone and can be refused — so writing the promise without the
   enforcement would leave repos carrying a guarantee that was false in the tree you cloned into.
-- **An explicit `true` that cannot be installed is refused**, with the installer's reason. The
-  local-by-default `true` cannot refuse — that would make `source_register` unusable wherever
-  another tool owns your hooks — so it registers, writes nothing, and says so.
+- **An explicit `true` that cannot be installed is refused**, with the installer's reason, rather
+  than recorded as a claim nothing enforces.
 - **The policy does not survive a protected push.** It lives under `.dotworld/`, so the filter
   strips it too. A fresh clone re-installs the hook from the committed file the next time you
   register the source.

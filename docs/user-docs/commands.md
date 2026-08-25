@@ -59,8 +59,6 @@ $ dot comms_read as=bob
     "since": "<varies>"
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -89,8 +87,6 @@ $ dot comms_send from=alice to=bob topic=retention 'body=Incident note is in. Th
     "at": "<varies>"
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -140,8 +136,6 @@ $ dot context_load index=notes/retention-pack.md mode=dot
         "obsolete": false,
         "kind": "prose",
 … 22 more lines of output
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -171,8 +165,6 @@ $ dot dot_attach dot=notes/deletion-runbook.md file=notes/purge-runbook.md
     "connectors": 0
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -209,7 +201,6 @@ $ dot dot_get 'files=["notes/retention.md"]'
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -260,8 +251,6 @@ $ dot dot_list limit=3
     ]
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 A dot whose file is gone and whose rename could not be resolved is STRANDED. The old runbook was deleted and recreated under a new name in a separate commit, so git had no rename to detect — its title, tags and properties are still here, attached to nothing.
@@ -289,8 +278,6 @@ $ dot dot_list orphaned=true
           "summary": "<!-- unread - summarize this file -->"
         }
 … 8 more lines of output
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 Nothing stranded any more.
@@ -308,8 +295,6 @@ $ dot dot_list orphaned=true
     "dots": []
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -346,8 +331,6 @@ $ dot dot_set file=notes/retention.md 'title=Data retention policy' 'tags=["poli
     "body": "Reviewed each quarter by the data protection lead.\n"
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -378,8 +361,6 @@ $ dot embedding_info
     "maxTokens": 512
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -432,8 +413,6 @@ survived one extra day. No customer data left the system.
     }
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -466,8 +445,6 @@ $ dot file_delete path=notes/incident-2026-03.md force=true
     "detail": "notes/retention-pack.md still links to notes/incident-2026-03.md in its own text. That link is now dead, and dotworld did not edit it: a wikilink is bytes in somebody's document, so removing one is an authored change (`file_create`)."
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -496,7 +473,6 @@ $ dot file_read 'files=["notes/retention.md"]'
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -514,7 +490,6 @@ $ dot file_read 'files=["notes/retention.md"]'
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE WORKSPACE /path/to/state/dotworld/worktrees/handbook/bob — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -550,8 +525,6 @@ Deletion is a hard delete, not a flag: see [[notes/deletion-runbook.md]].
     "committed": false
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -622,7 +595,6 @@ $ dot file_tree root=. depth=2
   }
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -658,8 +630,6 @@ $ dot git subcommand=status
     "stderr": ""
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 dotworld never commits on your behalf. Stage the dots alongside the files they describe — `.dotworld/dots/` is durable and belongs in the same commit as the source change.
@@ -682,8 +652,6 @@ $ dot git subcommand=add 'paths=["."]'
     "stderr": ""
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 This is git, not an abstraction over it. `exitCode` is git's own — a commit that stages nothing exits 1, and the envelope still says `ok: true` because git ran fine.
@@ -706,8 +674,6 @@ $ dot git subcommand=commit 'message=handbook: retention metadata and the March 
     "stderr": ""
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ```console
@@ -727,8 +693,6 @@ $ dot git subcommand=log 'flags=["--oneline"]'
     "stderr": ""
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 Resolve it where a shell user would. The rebase stops on the conflict and exits non-zero — that is git's own exit code, surfaced rather than swallowed.
@@ -754,8 +718,6 @@ $ dot git subcommand=rebase ref=main
     "diff": "diff --cc notes/retention.md\nindex 482e1c7,685586f..0000000\n--- a/notes/retention.md\n+++ b/notes/retention.md\n@@@ -1,6 -1,6 +1,10 @@@\n  # Data retention policy\n  \n++<<<<<<< HEAD\n +We keep customer event logs for 180 days, then delete them. Billing records are\n++=======\n+ We keep customer event logs for 30 days, then delete them. Billing records are\n++>>>>>>> e281999 (retention: shorten the log window to 30 days)\n  kept for seven years, because the tax authority can ask for them that far back.\n  \n  Deletion is a hard delete, not a flag: see [[notes/deletion-runbook.md]].\n"
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ```console
@@ -776,8 +738,6 @@ $ dot git subcommand=rebase 'flags=["--continue"]'
     "unmerged": []
   }
 … 1 more lines of output
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -824,7 +784,6 @@ $ dot graph_affected 'seed=retention window' depth=1
     {
 … 8 more lines of output
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -859,8 +818,6 @@ $ dot graph_connect from=notes/incident-2026-03.md to=notes/deletion-runbook.md 
     "derived": false
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 `supersedes` is a provenance edge — it records that one file replaced another, which is what `graph_provenance` reads.
@@ -880,8 +837,6 @@ $ dot graph_connect from=notes/retention.md to=decisions/2026-02-adopt-postgres.
     "derived": false
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -911,8 +866,6 @@ $ dot graph_disconnect from=notes/incident-2026-03.md to=notes/deletion-runbook.
     "derivedEdgeRemains": false
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -967,7 +920,6 @@ $ dot graph_get 'files=["notes/retention.md"]' hops=1
       },
 … 40 more lines of output
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1002,7 +954,6 @@ $ dot graph_provenance file=decisions/2026-02-adopt-postgres.md
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1037,8 +988,6 @@ $ dot index_create path=notes/retention-pack.md 'files=["notes/retention.md","no
     "missing": []
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1082,8 +1031,6 @@ $ dot obsolescence_review decisionPath=decisions/2026-02-adopt-postgres.md
         "reason": "both"
       }
 … 4 more lines of output
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1151,8 +1098,6 @@ $ dot plugin_list
     "note": "Config file in effect for this process: /path/to/handbook/.dotworld/dotworld.config.json."
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1183,7 +1128,6 @@ $ dot property_get 'files=["notes/retention.md"]' 'keys=["owner"]'
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1234,7 +1178,6 @@ $ dot property_list
     {
 … 64 more lines of output
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1264,8 +1207,6 @@ $ dot property_register name=owner merge=last-writer 'description=the person acc
     "description": "the person accountable for this file"
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1290,8 +1231,6 @@ $ dot property_set file=notes/retention.md key=owner value=alice
     "ok": true
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 The refusal an unregistered property earns. Register it first, or the merge cannot know how to resolve two writers.
@@ -1303,8 +1242,6 @@ $ dot property_set file=notes/retention.md key=reviewer value=bob
   "error": "`reviewer` is not registered in this working tree (source 'handbook'), and is on no dot there either. This only checks the registry on THIS working tree — another branch or workspace of the same source may already declare it; `property_list` there would show. Otherwise register it here first — `property_register name=reviewer merge=last-writer description='…'` — then set the value. `property_list` shows the vocabulary this working tree declares.",
   "code": "BAD_PARAMS"
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1335,8 +1272,6 @@ $ dot property_unregister name=owner
     "filesCarrying": 0
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1363,8 +1298,6 @@ $ dot property_unset file=notes/retention.md key=owner
     "wasRegistered": true
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1393,7 +1326,6 @@ $ dot search_grep 'pattern=90 days'
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1401,7 +1333,7 @@ ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, n
 
 ## `search_properties`
 
-Find files by dot metadata — e.g. which files have owner=alice, which are over five hours, which are still untagged. EVERY criterion ANDs with the others; there is no OR. `where` takes exact values (`{"owner":"alice"}`, matched by value and never by stringification — 3 is not "3") and COMPARISONS, written as an operator object: `{"hours":{"gt":5},"status":{"ne":"done"}}`, with `eq` `ne` `gt` `gte` `lt` `lte`. Ordering compares numbers numerically and strings lexicographically, which is what sorts ISO dates; a comparison across types, or against a boolean/array/object/null, is REFUSED rather than silently dropped. A key the file does not carry matches `ne` and nothing else. A `where` value is read as operators only when ALL its keys are operator names, so a property whose real value is literally {"gt":5} cannot be queried. `hasKey`/`missingKey` ask whether a property is there at all; `hasTag`/`missingTag` ask the same of TAGS, which are frontmatter and not properties, so they never match a property criterion. `files` narrows the scan to a candidate set — feed it a `grep -rl` result — and on its own returns those files, which is the one way to get an answer with no property criteria at all. A file carrying dotUnparseable: true is returned REGARDLESS of the criteria: its metadata cannot be read, so whether it matches is unknown rather than false (`files` still bounds it — that is a scope, not a criterion). An UNREGISTERED key still matches — the data is the data — and the advisory beside the result says so, distinguishing a key that is on files but undeclared from one that is simply absent.
+Find files by dot metadata — e.g. which files have owner=alice, which are over five hours, which are still untagged. EVERY criterion ANDs with the others; there is no OR. `where` takes exact values (`{"owner":"alice"}`, matched by value and never by stringification — 3 is not "3") and COMPARISONS, written as an operator object: `{"hours":{"gt":5},"status":{"ne":"done"}}`, with `eq` `ne` `gt` `gte` `lt` `lte`. Ordering compares numbers numerically and strings lexicographically, which is what sorts ISO dates; a comparison across types, or against a boolean/array/object/null, is REFUSED rather than silently dropped. A key the file does not carry matches `ne` and nothing else. A `where` value is read as operators only when ALL its keys are operator names, so a property whose real value is literally {"gt":5} cannot be queried. `hasKey`/`missingKey` ask whether a property is there at all; `hasTag`/`missingTag` ask the same of TAGS, which are frontmatter and not properties, so they never match a property criterion. `files` narrows the scan to a candidate set — feed it a `grep -rl` result — and on its own returns those files, which is the one way to get an answer with no property criteria at all. An EMPTY `files` answers `[]`: a grep that matched nothing leaves no candidates, so it cannot leave matches, and reading it as "no scope" would answer with the whole source. A file carrying dotUnparseable: true is returned REGARDLESS of the criteria: its metadata cannot be read, so whether it matches is unknown rather than false (`files` still bounds it — that is a scope, not a criterion). An UNREGISTERED key still matches — the data is the data — and the advisory beside the result says so, distinguishing a key that is on files but undeclared from one that is simply absent.
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1411,7 +1343,7 @@ Find files by dot metadata — e.g. which files have owner=alice, which are over
 | `missingKey` | string |  | match files NOT carrying this property key |
 | `hasTag` | string |  | match files carrying this tag |
 | `missingTag` | string |  | match files NOT carrying this tag |
-| `files` | array of string |  | restrict the scan to these file paths (a candidate set, e.g. from `grep -rl`); alone, it returns their dot metadata. An unindexed path is skipped, but a list where NONE resolve is refused |
+| `files` | array of string |  | restrict the scan to these file paths (a candidate set, e.g. from `grep -rl`); alone, it returns their dot metadata. An unindexed path is skipped, but a list where NONE resolve is refused; an empty list answers `[]` |
 | `workspace` | string |  | The working tree to answer from. THE INDEX IS PER WORKING TREE: this answer describes ONE tree, so two writers legitimately get different results, rankings, importance and read counts for the same query. OMITTING THIS DOES NOT MEAN "MY WORKSPACE": with no declared auth mode you are not routed to one, and the answer comes from the canonical checkout — where your own unlanded work is simply absent. Call `workspace_list` to see the workspaces that exist and pass one of their paths here; `workspace_open` creates yours if you have none. Whichever tree answers, an advisory beside the result names it and names any workspace it could not see. |
 
 ```console
@@ -1448,7 +1380,6 @@ $ dot search_properties 'where={"owner":"alice"}'
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1486,7 +1417,6 @@ $ dot search_properties hasKey=owner
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1543,7 +1473,6 @@ $ dot search_semantic 'query=how long do we keep customer logs' limit=3
   ]
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1589,7 +1518,6 @@ $ dot search_triage
       "machineEdits": 0,
 … 58 more lines of output
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE CANONICAL CHECKOUT — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -1612,8 +1540,6 @@ $ dot source_list
     }
   ]
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1627,9 +1553,9 @@ Point the kernel at a repo directory as a source (one source = one repo). `root`
 | `id` | string | yes | source id |
 | `root` | string | yes | absolute path to the source directory — must be a git repo's toplevel |
 | `initGit` | boolean |  | initialise a git repo if absent. The branch name is git's own (`init.defaultBranch`, or whatever your git defaults to) — dotworld does not choose one |
-| `neverPushDotworld` | boolean |  | When true, installs a git pre-push hook that strips every `.dotworld/**` path from history before anything reaches a remote — a plain `git push` from this source will never let dotworld's own metadata leave the machine; the raw push is rejected and a filtered equivalent is pushed in its place instead, automatically, with no dotworld command involved. The choice is written to `.dotworld/publish-policy.json` — durable and git-tracked — but note that it does NOT travel through a protected push: the policy file lives under `.dotworld/`, so the filter strips it along with everything else, and a remote fed only by filtered pushes never sees it. It reaches another machine by any route that copies the tree whole — a local clone, a copy, or a push made before the policy was turned on — and on those, that clone's next source_register installs the hook from the committed file with no action of its own. THE CLAIM IS NEVER WRITTEN UNLESS IT IS ENFORCED: the hook goes in first, and an explicit `true` that cannot be installed is REFUSED with the reason rather than recorded, because a durable file asserting a protection nothing enforces is worse than no protection. Pass `false` to remove the durable policy and uninstall dotworld's own hook; that direction needs no hook and always succeeds. A pre-push hook this did not install itself is NEVER touched, in either direction — installing refuses rather than overwriting it, and turning the policy off leaves a foreign hook exactly as it was. Omit this param entirely to leave the current policy untouched — EXCEPT on the first `source_register` of an id, where omitting it means `true`: a repo dotworld has just met is protected by default, and opting out is an explicit `false`. That default alone cannot refuse — it would make source_register unusable wherever another tool owns the hooks — so it registers, writes nothing, and reports `publishPolicy.localByDefaultNotApplied` saying why. A re-register never re-imposes that default, so a `false` you chose earlier survives one. |
+| `neverPushDotworld` | boolean |  | When true, installs a git pre-push hook that strips every `.dotworld/**` path from history before anything reaches a remote — a plain `git push` from this source will never let dotworld's own metadata leave the machine; the raw push is rejected and a filtered equivalent is pushed in its place instead, automatically, with no dotworld command involved. The choice is written to `.dotworld/publish-policy.json` — durable and git-tracked — but note that it does NOT travel through a protected push: the policy file lives under `.dotworld/`, so the filter strips it along with everything else, and a remote fed only by filtered pushes never sees it. It reaches another machine by any route that copies the tree whole — a local clone, a copy, or a push made before the policy was turned on — and on those, that clone's next source_register installs the hook from the committed file with no action of its own. THE CLAIM IS NEVER WRITTEN UNLESS IT IS ENFORCED: the hook goes in first, and an explicit `true` that cannot be installed is REFUSED with the reason rather than recorded, because a durable file asserting a protection nothing enforces is worse than no protection. Pass `false` to remove the durable policy and uninstall dotworld's own hook; that direction needs no hook and always succeeds. A pre-push hook this did not install itself is NEVER touched, in either direction — installing refuses rather than overwriting it, and turning the policy off leaves a foreign hook exactly as it was. Omit this param entirely to leave the current policy untouched, including on the first `source_register` of an id — a repo dotworld has just met is pushable by default (#404: enforcing local-by-default meant the pre-push hook had to rewrite the caller's own push configuration, which corrupted it in ways worse than the protection was worth); pass `neverPushDotworld=true` explicitly to protect it. |
 
-The first registration of an id with `neverPushDotworld` omitted means `true` anyway — a repo dotworld has just met is local by default. It is passed explicitly here to show the shape.
+A repo dotworld has just met is pushable by default — `neverPushDotworld` is passed explicitly here to protect it.
 
 ```console
 $ dot source_register id=handbook root=. neverPushDotworld=true
@@ -1646,8 +1572,6 @@ $ dot source_register id=handbook root=. neverPushDotworld=true
     }
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1674,8 +1598,6 @@ $ dot source_unregister id=handbook
     "detail": "handbook is no longer registered. Nothing on disk was touched — re-register it with `source_register id=handbook root=/path/to/handbook` and its dots are still there."
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1688,7 +1610,7 @@ Repoint a registered source at a different `root`. THIS EDITS THE REGISTRY, NOT 
 | --- | --- | --- | --- |
 | `id` | string | yes | the id of the source to change |
 | `root` | string |  | the new absolute path to the source directory (must already exist, and be a git repo's toplevel) |
-| `neverPushDotworld` | boolean |  | When true, installs a git pre-push hook that strips every `.dotworld/**` path from history before anything reaches a remote — a plain `git push` from this source will never let dotworld's own metadata leave the machine; the raw push is rejected and a filtered equivalent is pushed in its place instead, automatically, with no dotworld command involved. The choice is written to `.dotworld/publish-policy.json` — durable and git-tracked — but note that it does NOT travel through a protected push: the policy file lives under `.dotworld/`, so the filter strips it along with everything else, and a remote fed only by filtered pushes never sees it. It reaches another machine by any route that copies the tree whole — a local clone, a copy, or a push made before the policy was turned on — and on those, that clone's next source_register installs the hook from the committed file with no action of its own. THE CLAIM IS NEVER WRITTEN UNLESS IT IS ENFORCED: the hook goes in first, and an explicit `true` that cannot be installed is REFUSED with the reason rather than recorded, because a durable file asserting a protection nothing enforces is worse than no protection. Pass `false` to remove the durable policy and uninstall dotworld's own hook; that direction needs no hook and always succeeds. A pre-push hook this did not install itself is NEVER touched, in either direction — installing refuses rather than overwriting it, and turning the policy off leaves a foreign hook exactly as it was. Omit this param entirely to leave the current policy untouched — EXCEPT on the first `source_register` of an id, where omitting it means `true`: a repo dotworld has just met is protected by default, and opting out is an explicit `false`. That default alone cannot refuse — it would make source_register unusable wherever another tool owns the hooks — so it registers, writes nothing, and reports `publishPolicy.localByDefaultNotApplied` saying why. A re-register never re-imposes that default, so a `false` you chose earlier survives one. |
+| `neverPushDotworld` | boolean |  | When true, installs a git pre-push hook that strips every `.dotworld/**` path from history before anything reaches a remote — a plain `git push` from this source will never let dotworld's own metadata leave the machine; the raw push is rejected and a filtered equivalent is pushed in its place instead, automatically, with no dotworld command involved. The choice is written to `.dotworld/publish-policy.json` — durable and git-tracked — but note that it does NOT travel through a protected push: the policy file lives under `.dotworld/`, so the filter strips it along with everything else, and a remote fed only by filtered pushes never sees it. It reaches another machine by any route that copies the tree whole — a local clone, a copy, or a push made before the policy was turned on — and on those, that clone's next source_register installs the hook from the committed file with no action of its own. THE CLAIM IS NEVER WRITTEN UNLESS IT IS ENFORCED: the hook goes in first, and an explicit `true` that cannot be installed is REFUSED with the reason rather than recorded, because a durable file asserting a protection nothing enforces is worse than no protection. Pass `false` to remove the durable policy and uninstall dotworld's own hook; that direction needs no hook and always succeeds. A pre-push hook this did not install itself is NEVER touched, in either direction — installing refuses rather than overwriting it, and turning the policy off leaves a foreign hook exactly as it was. Omit this param entirely to leave the current policy untouched, including on the first `source_register` of an id — a repo dotworld has just met is pushable by default (#404: enforcing local-by-default meant the pre-push hook had to rewrite the caller's own push configuration, which corrupted it in ways worse than the protection was worth); pass `neverPushDotworld=true` explicitly to protect it. |
 
 Turning the publish policy OFF needs no hook and always succeeds. After this, a plain `git push` may carry `.dotworld/`.
 
@@ -1707,8 +1629,6 @@ $ dot source_update id=handbook neverPushDotworld=false
     }
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1741,8 +1661,6 @@ $ dot summary_refresh 'files=["notes/incident-2026-03.md"]'
     "missing": []
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1761,7 +1679,7 @@ $ dot sync_doctor
   "ok": true,
   "result": {
     "ok": false,
-    "status": "fail",
+    "status": "warn",
     "sources": [
       "handbook"
     ],
@@ -1769,9 +1687,8 @@ $ dot sync_doctor
       {
         "id": "build",
         "scope": "machine",
-        "status": "fail",
-        "detail": "dist/ was compiled <varies> and src/ has changed since, so every face is serving old code and saying nothing about it. This is how #261 substituted the fallback embedder for a whole session. The long-lived MCP server keeps serving whatever dist existed at its launch.",
-        "repair": "npm run build (then restart the MCP server — a fresh CLI and a stale MCP will disagree)"
+        "status": "ok",
+        "detail": "dist/ matches src/ (built <varies>, rev <varies>)."
       },
       {
         "id": "search-engine",
@@ -1787,9 +1704,8 @@ $ dot sync_doctor
       },
       {
         "id": "source-roots",
-… 101 more lines of output
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
+        "scope": "machine",
+… 100 more lines of output
 ```
 
 ---
@@ -1812,8 +1728,6 @@ $ dot sync_merge
   "ok": true,
   "result": []
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1838,8 +1752,6 @@ $ dot sync_source sourceId=handbook
     "connectors": 2
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1857,7 +1769,7 @@ $ dot version
   "result": {
     "build": {
       "builtAt": "<varies>",
-      "stale": true,
+      "stale": false,
       "rev": "<varies>"
     },
     "node": "v22.14.0",
@@ -1873,8 +1785,6 @@ $ dot version
       "comms_send",
       "context_load",
 … 46 more lines of output
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1906,8 +1816,6 @@ $ dot workspace_close as=bob
     "detail": "The workspace directory is gone; users/bob is not. It had nothing main does not already have."
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1943,8 +1851,6 @@ $ dot workspace_list
     }
   ]
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -1970,8 +1876,6 @@ $ dot workspace_open as=bob
     "created": true
   }
 }
-
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ```
 
 ---
@@ -2004,7 +1908,6 @@ $ dot workspace_submit 'message=retention: shorten the log window'
   }
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE WORKSPACE /path/to/state/dotworld/worktrees/handbook/bob — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
@@ -2022,7 +1925,6 @@ $ dot workspace_submit 'message=retention: settle the log window at 90 days'
   }
 }
 
-[dotworld] build is STALE — dist/ was compiled <varies> and src/ has changed since; the faces are serving old code. Run `npm run build`.
 ANSWERED FROM THE WORKSPACE /path/to/state/dotworld/worktrees/handbook/bob — resolved from your current directory, not from anything you passed. Pass `workspace=<path>` (see `workspace_list`) to choose a different tree explicitly.
 ```
 
