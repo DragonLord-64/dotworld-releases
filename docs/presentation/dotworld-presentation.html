@@ -371,8 +371,8 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
 </section>
 
 <section class="slide" data-demo="repository">
-  <div class="kicker">what reaches your remote</div>
-  <h2>Committed, or not — you choose, and the default is "not"</h2>
+  <div class="kicker">what git tracks</div>
+  <h2>Committed with your files, or not committed at all</h2>
   <div class="body">
     <table class="props">
       <tr><th style="width:34%">path</th><th style="width:18%">in git?</th><th>why</th></tr>
@@ -383,13 +383,13 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
       </tr>
       <tr class="hotrow">
         <td>.dotworld/dots/</td>
-        <td><span class="repo-badge opt">tracked, optional push</span></td>
-        <td>Durable metadata. Versions with the file, merges with the file, reviews with the file — that is the whole point. Whether it <i>leaves your machine</i> is a separate decision.</td>
+        <td><span class="repo-badge yes">tracked</span></td>
+        <td>Durable metadata. Versions with the file, merges with the file, reviews with the file — that is the whole point.</td>
       </tr>
       <tr>
         <td>.dotworld/properties.json<br>.dotworld/dotworld.config.json</td>
-        <td><span class="repo-badge opt">tracked, optional push</span></td>
-        <td>The repo's property vocabulary, and the plugin composition. Same treatment as the dots — and they live <i>inside</i> <code>.dotworld/</code> precisely because that is the directory the pre-push filter strips.</td>
+        <td><span class="repo-badge yes">tracked</span></td>
+        <td>The repo's property vocabulary, and the plugin composition. Same treatment as the dots.</td>
       </tr>
       <tr>
         <td>.dotworld/derived/</td>
@@ -397,12 +397,6 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
         <td>Self-ignoring — it ships its own <code>.gitignore</code> containing <code>*</code>.</td>
       </tr>
     </table>
-    <div class="callbox" style="margin-top:18px">
-      <b>A repo dotworld has just met is local by default.</b> The first <code>source_register</code>
-      installs a pre-push hook, and a plain <code>git push</code> then strips <code>.dotworld/**</code>
-      before it reaches the remote. Your metadata is committed and versioned locally; your teammates
-      see nothing until you opt in with <code>neverPushDotworld=false</code>.
-    </div>
   </div>
 </section>
 
@@ -510,7 +504,7 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
   <rect class="oa-store" x="1090" y="456" width="290" height="130" rx="10"/>
   <text class="oa-lbl" x="1110" y="480" fill="#7aa2f7">GIT</text>
   <text class="oa-s" x="1110" y="500">the sync substrate</text>
-  <text class="oa-m" x="1110" y="528">merge driver · pre-push hook</text>
+  <text class="oa-m" x="1110" y="528">merge driver, per property</text>
   <text class="oa-m" x="1110" y="550">linked worktrees = workspaces</text>
   <text class="oa-s" x="1110" y="574">conflicts are git's, not dotworld's</text>
 </svg>
@@ -546,7 +540,7 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
 <span class="k">summary</span>: <span class="v">'Implementation of CombatSystem. tryMeleeAttack() gates on a</span>
   <span class="v">stamina check but does not yet consume stamina… resolveDamage()</span>
   <span class="v">applies a 1.1x multiplier for Fire…'</span>
-<span class="k">summary_hash</span>: <span class="v">46fd70cd5dd2f056ccf9334b9a1db518b261cd8c</span>
+<span class="k">summary_blob</span>: <span class="v">46fd70cd5dd2f056ccf9334b9a1db518b261cd8c</span>
 <span class="ci-line"><span class="k">reviewStatus</span>: <span class="v">changes-requested</span></span>
 <span class="ci-line"><span class="k">riskLevel</span>: <span class="v">high</span></span>
 <span class="ci-line"><span class="k">reviewedBy</span>:</span>
@@ -567,7 +561,7 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
           They cannot be set through the property commands, and they never enter the property bag.</p>
         <p class="dot-band">built-in properties</p>
         <p class="sub" style="margin-bottom:18px"><code>kind</code>, <code>summary</code>,
-          <code>summary_hash</code>, <code>obsolete</code>, <code>render-hint</code>,
+          <code>summary_blob</code>, <code>obsolete</code>, <code>render-hint</code>,
           <code>agent_instructions</code> — what the kernel and the shipped plugins write. Available
           in a fresh repo with nothing declared.</p>
         <p class="dot-band" style="color:var(--amber)">this repo's own properties</p>
@@ -929,8 +923,8 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
         </dl>
         <div class="callbox" style="margin-top:20px">
           <b>The split is exact.</b> The kernel <i>detects</i> the drift: it stamps
-          <code>summary_hash</code> with the body the summary was written against, so a stale
-          summary is a hash comparison, not a judgment. What the summary should now <i>say</i>
+          <code>summary_blob</code> — git's blob SHA of the body the summary was written against — so a
+          stale summary is a comparison git already answered, not a judgment. What the summary should now <i>say</i>
           needs a model — so it cannot live in the kernel at all.
         </div>
       </div>
@@ -939,7 +933,7 @@ CMakeLists.txt  README.md  CHANGELOG.md  ...     <span class="c">← your files.
   <span class="v">tryMeleeAttack() gates on a stamina check but</span>
   <span class="v">does not yet consume stamina, animate, or do</span>
   <span class="v">hit detection (TODO)…'</span>
-<span class="ci-line"><span class="k">summary_hash</span>: <span class="v">46fd70cd5dd2f05…</span></span></div>
+<span class="ci-line"><span class="k">summary_blob</span>: <span class="v">46fd70cd5dd2f05…</span></span></div>
         <p class="sub" style="margin-top:16px">
           The hash is the body this sentence was true of. Edit the file and the hash no longer
           matches — the summary is now <i>suspect</i>, mechanically, with nobody having to notice.
@@ -1357,7 +1351,7 @@ working tree. property_list shows the vocabulary.</span></div>
 <span class="k">riskLevel:</span> <span class="v">high</span>
 <span class="k">reviewedBy:</span>
   <span class="v">- save-reviewer</span>
-<span class="k">summary_hash:</span> <span class="v">9f318039794e665af96…</span>
+<span class="k">summary_blob:</span> <span class="v">9f318039794e665af96…</span>
 <span class="cm">---</span>
 
 <span class="cm">save-reviewer review note: save() calls</span>
@@ -1426,7 +1420,7 @@ working tree. property_list shows the vocabulary.</span></div>
 <span class="k">riskLevel:</span> <span class="v">high</span>
 <span class="k">reviewedBy:</span>
   <span class="v">- save-reviewer</span>
-<span class="k">summary_hash:</span> <span class="v">9f318039…</span></div>
+<span class="k">summary_blob:</span> <span class="v">9f318039…</span></div>
         <p class="sub" style="font-size:14.5px; margin-top:12px">Every original line survives.
         The review added to the dot; it replaced nothing.</p>
       </div>
@@ -1434,7 +1428,7 @@ working tree. property_list shows the vocabulary.</span></div>
 <span class="k">riskLevel:</span> <span class="v">high</span>
 <span class="k">reviewedBy:</span>
   <span class="v">- save-reviewer</span>
-<span class="k">summary_hash:</span> <span class="v">9f318039…</span>
+<span class="k">summary_blob:</span> <span class="v">9f318039…</span>
 <span class="ci-line"><span class="k">lastHumanReview:</span> <span class="v">'2026-08-20'</span>  <span class="ci-tag">← mira</span></span>
 <span class="ci-line"><span class="k">reviewNotes:</span> <span class="v">|-</span>              <span class="ci-tag">← mira</span></span>
 <span class="ci-line">  <span class="v">Save version bump (v3-&gt;v4) looked</span></span>
@@ -1512,7 +1506,7 @@ working tree. property_list shows the vocabulary.</span></div>
 <section class="slide" data-demo="context-budgeting">
   <div class="kicker">2 · what we ran · commit adfcc5e</div>
   <h2>tokenCount is the only property this demo had to add</h2>
-  <p class="sub">dotworld already reports whether a summary is still true: <code>summary_hash</code>
+  <p class="sub">dotworld already reports whether a summary is still true: <code>summary_blob</code>
   is a sha1 of the source bytes, and <code>dot_get</code> compares it live. Nothing to register for that half.</p>
   <div class="body">
     <div class="cols tight">
@@ -1530,7 +1524,7 @@ tokens=$(( (bytes + 3) / 4 ))
 dot property_set file="$f" key=tokenCount \
     value="$tokens" --user "$user"</div>
         <div class="callbox" style="margin-top:14px">
-          <b>summary_hash and summaryStatus needed no <code>property_register</code> call at all.</b>
+          <b>summary_blob and summaryStatus needed no <code>property_register</code> call at all.</b>
           They're native to <code>dot_get</code>. The team registered exactly one thing.
         </div>
       </div>
@@ -1584,7 +1578,7 @@ dot property_set file="$f" key=tokenCount \
 <span class="ci-line">  <span class="v">the ECS as the opaque reference to</span></span>
 <span class="ci-line">  <span class="v">a live or dead slot in</span></span>
 <span class="ci-line">  <span class="v">EntityManager.'</span></span>
-<span class="ci-line"><span class="k">summary_hash:</span> <span class="v">acadbccf…d5f15</span> <span class="ci-tag">← 5790550</span></span>
+<span class="ci-line"><span class="k">summary_blob:</span> <span class="v">acadbccf…d5f15</span> <span class="ci-tag">← 5790550</span></span>
 <span class="ci-line"><span class="k">tokenCount:</span> <span class="v">170</span>            <span class="ci-tag">← adfcc5e</span></span>
 <span class="cm">---</span></div>
       <div>
@@ -1595,7 +1589,7 @@ dot property_set file="$f" key=tokenCount \
         <p class="lede" style="margin-top:10px; font-size:16px"><code>tools/token-stamp.sh</code>
         reruns on every merge to master, so <code>tokenCount</code> never drifts far from the real file size.</p>
         <p class="lede" style="margin-top:10px; font-size:16px"><code>dot_get</code> compares
-        <code>summary_hash</code> to the live file bytes on every call. <b>summaryStatus: current</b> —
+        <code>summary_blob</code> to git's own blob SHA for the live file on every call. <b>summaryStatus: current</b> —
         no field anyone had to add to get that.</p>
       </div>
     </div>
@@ -1637,12 +1631,12 @@ dot property_set file="$f" key=tokenCount \
   <span class="v">as <span style="color:var(--teal)">version 4</span> (Vael Spire discovery flags) with</span>
   <span class="v"><span style="color:var(--teal)">version 3</span> as the minimum supported via an</span>
   <span class="v">upgrade pass …'</span>
-<span class="k">summary_hash:</span> <span class="v">f857b2b5e01e25c082c09fd6…</span>
+<span class="k">summary_blob:</span> <span class="v">f857b2b5e01e25c082c09fd6…</span>
 <span class="cm">---</span></div>
       <div>
         <p class="lede">Today this doc is <b>correct</b>. It describes save format v4, which is what the
         code actually implements.</p>
-        <p class="lede" style="margin-top:16px">The dot carries a <code>summary_hash</code>:
+        <p class="lede" style="margin-top:16px">The dot carries a <code>summary_blob</code>:
         the sha1 of the source file's bytes at the moment its summary was last verified.
         That one field is the entire mechanism.</p>
         <div class="callbox"><b>Remember this file.</b> It is about to become wrong
@@ -1681,7 +1675,7 @@ dot property_set file="$f" key=tokenCount \
         change touches.</p>
         <div class="callbox" style="margin-top:16px">
           <b>Two signals, two jobs.</b><br>
-          <code>summary_hash</code> → “this file moved under its summary.”<br>
+          <code>summary_blob</code> → “this file moved under its summary.”<br>
           <code>graph_affected</code> → “this file should probably move too.”
         </div>
         <p class="sub" style="margin-top:16px; font-size:16px">Together they give a doc-consuming agent
@@ -1703,7 +1697,7 @@ dot property_set file="$f" key=tokenCount \
   <span class="v">Spire discovery flags) with</span>
   <span class="v">version 3 as the minimum</span>
   <span class="v">supported …'</span>
-<span class="k">summary_hash:</span> <span class="v">f857b2b5…</span></div>
+<span class="k">summary_blob:</span> <span class="v">f857b2b5…</span></div>
         <p class="sub" style="font-size:14.5px; margin-top:12px">The doc was rewritten to be true,
         then its summary and hash were re-verified against it.</p>
       </div>
@@ -1715,7 +1709,7 @@ dot property_set file="$f" key=tokenCount \
 <span class="ci-line">  <span class="v">with <b>version 4</b> as the minimum</span></span>
 <span class="ci-line">  <span class="v">supported via</span></span>
 <span class="ci-line">  <span class="v">SaveGame::upgradeFromV4() …'</span></span>
-<span class="ci-line"><span class="k">summary_hash:</span> <span class="v">395301d3604022ac…</span>  <span class="ci-tag">← re-verified</span></span></div>
+<span class="ci-line"><span class="k">summary_blob:</span> <span class="v">395301d3604022ac…</span>  <span class="ci-tag">← re-verified</span></span></div>
       <div>
         <p class="lede" style="font-size:18px">Every stale dot in the blast radius was
         regenerated in the same commit, and <code>summaryStatus</code> reads
@@ -2282,9 +2276,6 @@ still doesn't tell you save() lies —
   <text class="itemd" x="646" y="610">  3-way, per property</text>
   <text class="item"  x="646" y="634">merge-driver.ts</text>
   <text class="itemd" x="646" y="652">  git spawns this</text>
-  <text class="item"  x="646" y="676">dotworld-filter.ts</text>
-  <text class="item"  x="646" y="700">pre-push-hook.ts</text>
-  <text class="item"  x="646" y="718">publish-policy.ts</text>
   <text class="note"  x="646" y="738">what it cannot settle, git reports</text>
 
   <rect class="box2" x="903" y="458" width="253" height="286" rx="7"/>
@@ -2353,7 +2344,7 @@ still doesn't tell you save() lies —
   <text class="note"   x="96" y="944">what dotworld knows about it — frontmatter, then an authorable body</text>
   <text class="item"   x="96" y="968">id · source_id · source_path · title · tags</text>
   <text class="itemd"  x="96" y="988">reserved identity — refused in the property bag</text>
-  <text class="item"   x="96" y="1008">then the bag, flat: kind · summary · summary_hash · …</text>
+  <text class="item"   x="96" y="1008">then the bag, flat: kind · summary · summary_blob · …</text>
 
   <rect class="box2" x="80" y="1028" width="560" height="56" rx="7"/>
   <text class="btitle" x="96" y="1052">.dotworld/properties.json</text>
@@ -2397,10 +2388,8 @@ still doesn't tell you save() lies —
   <text class="bsub"  x="1346" y="838">the sync substrate</text>
   <text class="item"  x="1346" y="872">merge driver</text>
   <text class="itemd" x="1346" y="890">  per-property</text>
-  <text class="item"  x="1346" y="916">clean / smudge filter</text>
-  <text class="item"  x="1346" y="942">pre-push hook</text>
-  <text class="item"  x="1346" y="968">linked worktrees</text>
-  <text class="itemd" x="1346" y="986">  = workspaces</text>
+  <text class="item"  x="1346" y="916">linked worktrees</text>
+  <text class="itemd" x="1346" y="934">  = workspaces</text>
   <text class="note"  x="1346" y="1022">a branch IS the</text>
   <text class="note"  x="1346" y="1040">proposal — review</text>
   <text class="note"  x="1346" y="1058">has no second home</text>

@@ -1,13 +1,19 @@
 ---
 title: Getting started
 date: 2026-08-22
-tags: [guide, setup, source, publish-policy]
+tags: [guide, setup, source]
 ---
 
 # Getting started
 
 From nothing to a searchable source. Every command here has its full parameter list in
 [commands.md](commands.md).
+
+**Platforms.** `install.sh` is bash, so it covers Linux and macOS; on Windows you install the
+tarball with `npm install -g` and seed the machine config by hand. The suite has a CI job for all
+three, but CI is `workflow_dispatch`-only right now, so read that as "written to run there", not as
+"every commit is verified on all three". The platform notes worth knowing before you file a bug are
+in the [repository README](../../README.md#platforms).
 
 ## 1. Point dotworld at a repo
 
@@ -19,57 +25,22 @@ $ dot source_register id=handbook root=.
 ```
 
 `root=.` is resolved against your working directory. If the directory is not a git repository yet,
-pass `initGit=true` and dotworld will make it one.
-
-**A repo dotworld has just met is pushable by default.** With `neverPushDotworld` omitted, nothing
-changes about how `git push` behaves — `.dotworld/` pushes like any other tracked file. Opt in
-explicitly if you want it kept off a remote:
-
-```console
-$ dot source_register id=handbook root=. neverPushDotworld=true
-```
-
-Check what you got — the result tells you whether the hook actually landed:
-
-```json
-{ "ok": true, "result": { "id": "handbook", "root": "/home/you/handbook",
-  "publishPolicy": { "neverPushDotworld": true, "prePushHook": { "installed": true } } } }
-```
-
-Four things worth knowing about the policy:
-
-- **A plain `git push` keeps working after the first push, too.** The hook's own filtered push
-  rewrites the remote to a history your next local commit can't fast-forward from, so an unforced
-  `git push` would otherwise be rejected before the hook even runs, every time after the first.
-  dotworld heads this off itself: it scopes a forced refspec to the branch it just pushed and sets
-  upstream tracking, since git's own `--set-upstream` never lands here (the raw push it would ride
-  on is always the one this hook aborts). If you see the rejection anyway, just `git push` again —
-  do **not** `git pull` to clear it, that merges the filtered history (the copy with `.dotworld/`
-  stripped out) back into your own branch.
-- **The claim is never written unless it is enforced.** The hook is installed *first*;
-  `publish-policy.json` is only written if it landed. That file is committed and travels with the
-  repo, while the hook is per-clone and can be refused — so writing the promise without the
-  enforcement would leave repos carrying a guarantee that was false in the tree you cloned into.
-- **An explicit `true` that cannot be installed is refused**, with the installer's reason, rather
-  than recorded as a claim nothing enforces.
-- **The policy does not survive a protected push.** It lives under `.dotworld/`, so the filter
-  strips it too. A fresh clone re-installs the hook from the committed file the next time you
-  register the source.
-
-Turning the policy off (`source_update id=handbook neverPushDotworld=false`) needs no hook and
-always succeeds.
+pass `initGit=true` and dotworld will make it one. Pass `writeAgentsDoc=true` to append a short
+dotworld orientation block to the source's `AGENTS.md`, creating the file if it has none — opt-in,
+because it writes to your repository.
 
 ## 2. Build the index
 
 ```console
 $ dot sync_source sourceId=handbook
-{ "ok": true, "result": { "files": 4, "connectors": 1 } }
+{"ok":true,"result":{"files":4,"connectors":1}}
 ```
 
-This mints a dot for every file that lacks one and rebuilds the disposable index. **Do this before
-you commit**, then stage the new dots alongside the files that produced them — a file added by hand
-is invisible to every other clone until its dot is committed. Details and the wikilink format are in
-[indexing.md](indexing.md).
+This rebuilds the disposable index and heals a dot an older version wrote wrong. It **mints
+nothing**: a file with no dot is still fully indexed, searchable and readable, and a dot comes into
+being on the first write that has something to record about the file. Run it after adding or
+renaming files, and when you do write metadata, stage the dot alongside the file it describes.
+Details and the wikilink format are in [indexing.md](indexing.md).
 
 ## 3. Check the install is not half-working
 
@@ -91,9 +62,9 @@ $ dot plugin_list    # what attached, and what was skipped at boot, with reasons
 $ dot search_semantic query="how long do we keep customer logs" limit=3
 ```
 
-Semantic search needs the embedding model. If `dot embedding_info` reports the `hashing` engine
-rather than `fastembed`, results are much worse than the config promises — see
-[search.md](search.md) to fix that.
+Semantic search needs the embedding model, and there is no fallback: if `dot embedding_info`
+reports `quality: "unavailable"`, `search_semantic` refuses rather than ranking on something
+weaker — see [search.md](search.md) to fix that.
 
 ## 5. Working with other people
 

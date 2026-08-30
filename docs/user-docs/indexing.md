@@ -10,24 +10,28 @@ tags: [guide, index, wikilinks, graph]
 
 ```console
 $ dot sync_source sourceId=handbook
-{ "ok": true, "result": { "files": 4, "connectors": 1 } }
+{"ok":true,"result":{"files":4,"connectors":1}}
 ```
 
-`sync_source` is the only thing that mints dots. It walks the files git would track, mints a
-`.dot.md` for any that lacks one, and rebuilds the derived index — embeddings, the link graph,
-content hashes — under `.dotworld/derived/`.
+`sync_source` walks the files git would track and rebuilds the derived index — embeddings, the
+link graph, and the blob SHA git already reported for each path — under `.dotworld/derived/`. It
+also heals a dot an older version wrote wrong: a missing `kind`, a title minted from a code comment.
 
 Three rules follow from that:
 
-- **Reads mint nothing.** `search_semantic`, `file_read`, `dot_get`, `file_tree` and `graph_get`
-  never write to your repository. A file you added by hand stays invisible to dotworld until you
-  sync.
-- **Sync, then commit dots with the files that produced them.** `.dotworld/dots/` is durable and in
-  git. A file whose dot is uncommitted is invisible to every other clone, and regenerating it later
-  mints a *blank* dot — the title, tags and properties are not recovered.
+- **A dot exists once there is something to record.** `sync_source` mints none. A file with no dot
+  is fully indexed, searchable and readable all the same — a blank dot would assert exactly what its
+  absence already says. The dot is born on the first write that records something: a tag, a
+  property, a summary, a title, a body. The one exception is `file_create`, which authors a file and
+  its dot in a single act and so writes a dot even when you pass it no metadata.
+- **Reads mint nothing either.** `search_semantic`, `file_read`, `dot_get`, `file_tree` and
+  `graph_get` never write to your repository.
+- **Commit a dot with the file it describes.** `.dotworld/dots/` is durable and in git, so once you
+  have written metadata, a dot left uncommitted is metadata no other clone has — and nothing
+  reconstructs it, because there is nothing to reconstruct it from.
 - **`.dotworld/derived/` is disposable.** `rm -rf` it whenever you like; the next sync rebuilds it.
 
-`file_create` mints the dot in the same act, so files you create *through* dotworld need no
+`file_create` writes the file and its dot in the same act, so metadata you pass it needs no
 follow-up sync.
 
 ### Why a file is not indexed

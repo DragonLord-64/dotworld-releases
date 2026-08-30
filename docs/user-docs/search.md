@@ -1,6 +1,6 @@
 ---
 title: Semantic search and fastembed
-date: 2026-08-22
+date: 2026-08-29
 tags: [guide, search, embedding, fastembed]
 ---
 
@@ -22,9 +22,11 @@ superseded file can still rank above its replacement, and this is the only relia
 
 ## Setting up fastembed
 
-Semantic search only works as advertised with a real embedding model. Without it dotworld falls back
-to a built-in `hashing` embedder, which is much worse — and the failure is quiet, which is the
-problem.
+Semantic search needs a real embedding model, and **there is no built-in fallback.** An install that
+never pulled the weights has no semantic search rather than a worse version of it: `search_semantic`
+**refuses** with `BAD_PARAMS`, names `search_grep` as what still works, and gives you the one-time
+pull command. An absent capability is honest; one that quietly ranks differently under the same name
+is not.
 
 **Check first:**
 
@@ -32,16 +34,20 @@ problem.
 $ dot embedding_info
 ```
 
-`"engine": "fastembed"` with `"quality": "ok"` means you are set. `"engine": "hashing"` means you are
-not, and `quality` will say which flavour of not:
+`quality` is the one field that answers "is search healthy right now", and it has two values:
 
-| `quality` | What happened |
+| `quality` | What it means |
 |---|---|
-| `ok` | the configured engine is live |
-| `degraded-no-config` | no `dotworld.config.json` was found from this directory |
-| `degraded-…` with `reason: "construct-failed"` | the package or the weights are missing |
-| `degraded-…` with `reason: "unknown-engine"` | a bad engine name, or a stale build |
-| `reason: "auto-fallback"` | `engine: "auto"` looked for a real engine and found none |
+| `ok` | a model is loaded and search ranks |
+| `unavailable` | no model is loaded and `search_semantic` refuses |
+
+When search is unavailable, `reason` says why, and `note` says it in prose with the remedy:
+
+| `reason` | What happened |
+|---|---|
+| `unknown-engine` | the engine name in config is not one this build knows — check the spelling against the `available` list, or the build predates the engine |
+| `construct-failed` | the name is recognised but the package or the pulled weights are missing |
+| `null` with `requested: null` | no `dotworld.config.json` was found from this directory, so no engine was ever requested |
 
 **Pull the weights.** This is the only time dotworld reaches the network for embeddings; after it
 runs, the model loads fully offline and query time makes no outbound request.
@@ -74,24 +80,29 @@ Then re-index, because embeddings are part of the derived index:
 $ dot sync_source sourceId=handbook
 ```
 
-## `fastembed` or `auto` — the difference is what happens when it breaks
+## `fastembed` or `auto` — the difference is only in the diagnosis
 
-- **`engine: "fastembed"`** is a demand. If it cannot be built, `search_semantic` **refuses** with
-  `BAD_PARAMS` rather than silently ranking on the weaker model. Pick this when quiet degradation
-  would be worse than an error — which, for anything you are trusting the ranking of, it usually is.
-- **`engine: "auto"`** is a preference. It takes a real engine if one is available and falls back to
-  `hashing` otherwise, reporting `reason: "auto-fallback"`. Landing on the fallback *obeyed* the
-  request, so `honored` stays `true` — check `quality`, not `honored`, to know whether search is
-  healthy.
-- **`engine: "hashing"`** is the built-in fallback. No download, no dependency, noticeably worse
-  ranking. Fine for tests and for exact-match workflows that lean on `search_grep`.
+- **`engine: "fastembed"`** names the engine you want. If it cannot be built, `reason` is
+  `construct-failed` and the message names *that* engine.
+- **`engine: "auto"`** means "a real engine if one can be built, **nothing** otherwise". It is not a
+  request for a weaker model — there isn't one. If nothing can be built it also reports
+  `construct-failed`, phrased about `auto` rather than a named engine.
 
-## The limit worth knowing: `maxTokens`
+Either way the outcome when no model loads is identical: `quality: "unavailable"` and a refusal. The
+choice only changes which sentence you get back.
 
-`embedding_info` reports `maxTokens` — for `all-MiniLM-L6-v2`, 512. That is how much of a document
-the model actually sees. **A file longer than that is ranked on its opening section only**, and
-everything past it is silently unseen.
+## Long files are embedded whole
 
-This is not a bug you can configure away; it is the model. In practice it means a long document
-whose relevant part is buried in the middle may not rank, so for exact identifiers prefer
-`search_grep`, and when search is degraded, open more candidates than usual.
+`embedding_info` reports `maxTokens` — for `all-MiniLM-L6-v2`, 512. That is the ceiling on a single
+**pass** through the model, not on how much of a file is seen.
+
+A file longer than the ceiling is split into overlapping chunks, each embedded separately, and a
+path's vectors are folded with `MAX` — so a match anywhere in a file ranks the file, including a
+passage buried in the middle. Chunk boundaries are never part of the cache key; the whole file's git
+blob SHA is, so boundaries are free to move between versions.
+
+A provider that declares no `maxTokens` is not chunked, because there is no ceiling to chunk around
+and one vector is the honest representation of it.
+
+Two practical notes survive that: for exact identifiers `search_grep` is still the right tool, and
+a hit is a candidate to open, not an answer.

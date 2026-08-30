@@ -9,15 +9,9 @@ tags: [index, docs, guide]
 For people and agents *using* dotworld. (Design rationale for contributors is
 [`../architecture.md`](../architecture.md); writing a plugin is [`../plugins.md`](../plugins.md).)
 
-**Registering a source that already lives in a shared or public remote?** dotworld is local-by-default
-on the first registration: a pre-push hook keeps `.dotworld/` off `git push` without you asking for it,
-and a plain `git push` keeps working on every push after the first. See
-[getting-started.md §1](getting-started.md#1-point-dotworld-at-a-repo) before you register.
-
 Start here:
 
-1. **[getting-started.md](getting-started.md)** — register a source, set the push policy, build the
-   index, first search.
+1. **[getting-started.md](getting-started.md)** — register a source, build the index, first search.
 2. **[concepts.md](concepts.md)** — files vs dots, why there is no database, sources and workspaces,
    and where every byte lives.
 3. **[indexing.md](indexing.md)** — `sync_source`, the two link syntaxes, index files as reusable
@@ -51,10 +45,11 @@ captured outputs are stale until someone runs `npm run docs`. `npm run docs:chec
 it is deliberately not in CI — the build needs the real fastembed weights, and CI declines the model
 pull by policy.
 
-Fields shown as `"<varies>"` are redacted, not invented: build stamps, timestamps and the
-time-derived staleness scores cannot be captured reproducibly, and printing a plausible-looking
-number would be a value that is true for nobody.
+Fields shown as `"<varies>"` are redacted, not invented: build stamps, timestamps, the node version
+of whoever ran the build and the time-derived staleness scores cannot be captured reproducibly, and
+printing a plausible-looking number would be a value that is true for nobody.
 
 ## Not covered here
 
-MCP. dotworld serves the same command set over MCP and HTTP, but these docs are CLI-only for now.
+MCP and HTTP. Both faces exist in the codebase, but the alpha ships the CLI only
+([concepts.md](concepts.md#3-one-command-set-three-faces)), so these docs are CLI-only too.

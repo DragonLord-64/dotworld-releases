@@ -32,14 +32,15 @@ says `files=notes/retention.md` and never `files=.dotworld/dots/...`. The one ex
 ## 2. Files are the only source of truth
 
 There is no database. Source files and dots are durable and in git; everything else — embeddings,
-the link graph, content hashes — is a **disposable index** under `.dotworld/derived/`, rebuilt from
+the link graph, git's blob SHA per path — is a **disposable index** under `.dotworld/derived/`, rebuilt from
 the files. You can `rm -rf .dotworld/derived/` any time and lose nothing. A cold start reconstructs
 it.
 
 Two consequences worth internalising:
 
-- **A file dotworld has not indexed is invisible to it.** Adding a file by hand does not mint its
-  dot. `sync_source` does. See [indexing.md](indexing.md).
+- **A dot exists once there is something to record.** `sync_source` mints none, and neither does
+  adding a file by hand: an undotted file is indexed, searchable and readable all the same, and its
+  dot is born on the first write that records something. See [indexing.md](indexing.md).
 - **Reads never write.** `file_read`, `search_semantic`, `dot_get`, `file_tree` and `graph_get`
   write nothing to your repository, ever — not even a blank dot.
 
@@ -47,14 +48,23 @@ Two consequences worth internalising:
 
 `dot <command> key=value` is the CLI. The same commands are served over HTTP and MCP from the same
 registry, so nothing can drift between them: the CLI's `--help`, the MCP tool schema and
-[commands.md](commands.md) are all projections of one definition in the code.
+[commands.md](commands.md) are all projections of one definition in the code. **The alpha tarball
+ships the CLI only** — the HTTP and MCP faces are in the codebase but deliberately not in the
+install.
 
-Everything answers the same envelope:
+Underneath, every command answers the same envelope:
 
 ```json
 { "ok": true,  "result": … }
 { "ok": false, "error": "…", "code": "BAD_PARAMS" }
 ```
+
+Over the CLI that envelope is what **`--json`** asks for. Without it, the commands that have a
+plain-text rendering — `file_tree`, `file_read`, `search_grep`, `search_semantic`, `dot_list`,
+`dot_get` — answer in lines you can read and pipe, and a failure goes to stderr as a `dot: ` line
+instead of onto stdout. Every other command still prints the envelope, so `--json` is the reliable
+form in a script. `--json '{"sourceId":"kb"}'` passes params as an object; bare `--json` asks for the
+envelope back.
 
 Advisory notes — which working tree answered, what got inferred — go to **stderr**, so piping stdout
 into `jq` stays clean.
@@ -97,7 +107,6 @@ A **satellite** is a remote, API-only consumer.
 | Dots | `<repo>/.dotworld/dots/` | yes — git |
 | Property vocabulary | `<repo>/.dotworld/properties.json` | yes — git |
 | Authored connectors | `<repo>/.dotworld/connectors/` | yes — git |
-| Publish policy | `<repo>/.dotworld/publish-policy.json` | yes — git |
 | Derived index | `<tree>/.dotworld/derived/` | **no** — `rm -rf` freely |
 | Source registry | `$XDG_CONFIG_HOME/dotworld/config.json` | machine state |
 | Model weights | `$XDG_CACHE_HOME/dotworld/models/` | machine state |
